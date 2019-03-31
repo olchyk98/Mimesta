@@ -2,17 +2,18 @@
     --navwidth: 60px;
 }
 
-html, body {
+html,
+body {
     margin: 0;
     height: 100%;
-    font-family:  -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen",
-    "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue",
-    sans-serif;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen",
+        "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue",
+        sans-serif;
     background: #FEFEFE;
 }
 
 #root {
-    display:flex;
+    display: flex;
 }
 
 .definp {
@@ -25,7 +26,12 @@ html, body {
 }
 
 .rn {
+    --paddinglr: 0px;
+
+    padding-left: var(--paddinglr);
+    padding-right: var(--paddinglr);
     height: 100vh;
-    width: calc(100vw - var(--navwidth));
+    width: calc(100vw - var(--navwidth) - var(--paddinglr) * 2);
     position: relative;
+    overflow: scroll;
 }

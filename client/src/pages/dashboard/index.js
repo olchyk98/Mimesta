@@ -10,11 +10,11 @@ class StatsCard extends Component {
     render() {
         return(
             <article className="rn-dashboard-stats-item">
-                <div>
+                <div className="rn-dashboard-stats-item-icon">
                     <FontAwesomeIcon icon={ faBox } />
                 </div>
-                <h3>2.3k learned cards</h3>
-                <span>Total</span>
+                <h3 className="rn-dashboard-stats-item-value">2.3k</h3>
+                <span className="rn-dashboard-stats-item-title">Total</span>
             </article>
         );
     }
@@ -23,12 +23,33 @@ class StatsCard extends Component {
 class Stats extends Component {
     render() {
         return(
-            <section className="rn-dashboard-section rn-dashboard-stats">
+            <>
                 <h2 className="rn-dashboard-toptitle">Analytics Overview for this month</h2>
-                <StatsCard />
-                <StatsCard />
-                <StatsCard />
-            </section>
+                <section className="rn-dashboard-section rn-dashboard-stats">
+                    <StatsCard />
+                    <StatsCard />
+                    <StatsCard />
+                </section>
+            </>
+        );
+    }
+}
+
+class Desks extends Component {
+    render() {
+        return(
+            <>
+                <h2 className="rn-dashboard-toptitle">Analytics Overview for this month</h2>
+                <section className="rn-dashboard-section rn-dashboard-desks">
+                    <Desk />
+                    <Desk />
+                    <Desk />
+                    <Desk />
+                    <Desk />
+                    <Desk />
+                    <Desk />
+                </section>
+            </>
         );
     }
 }
@@ -38,6 +59,7 @@ class Hero extends Component {
         return(
             <div className="rn rn-dashboard">
                 <Stats />
+                <Desks />
             </div>
         );
     }
