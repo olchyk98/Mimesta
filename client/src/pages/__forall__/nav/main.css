@@ -1,0 +1,95 @@
+.gle-nav {
+    --padding: 22.5px;
+
+    padding-top: var(--padding);
+    padding-bottom: var(--padding);
+    width: var(--navwidth);
+    height: calc(100vh - var(--padding) * 2);
+    background: white;
+    border-right: 1px solid rgba(0, 0, 0, .1);
+    display: flex;
+    box-shadow: 0px 0px 2.5px -.5px rgba(0, 0, 0, .05);
+    align-items: center;
+    position: relative;
+    justify-content: flex-start;
+    flex-direction: column;
+    overflow: visible;
+}
+
+.gle-nav > * {
+    flex-shrink: 0;
+}
+
+.gle-nav-item {
+    width: 100%;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: rgba(0, 0, 0, .6);
+    margin-bottom:40px;
+    cursor:pointer;
+    font-size:1.15em;
+}
+
+.gle-nav-item-tooltip {
+    --arrsiz: 10px;
+    --col: #222222;
+    --padding: 10px;
+    --height: 30px;
+    --trans: .15s;
+
+    position: absolute;
+    right: 0;
+    top: 50%;
+    transform: translate(calc(100% - 10px), -50%);
+    opacity: 0;
+    background: var(--col);
+    height: var(--height);
+    padding-left: var(--padding);
+    padding-right: var(--padding);
+    color: white;
+    border-radius:2.5px;
+    font-size:.95rem;
+    visibility:hidden;
+    font-family: "Quicksand";
+    line-height: var(--height);
+    transition: all var(--trans), visibility var(--trans);
+}
+
+.gle-nav-item:hover .gle-nav-item-tooltip {
+    transition: all var(--trans), visibility 0s;
+    transform: translate(100%, -50%);
+    opacity: 1;
+    visibility: visible;
+}
+
+.gle-nav-item-tooltip:before {
+    content: '';
+    position: absolute;
+    height: var(--arrsiz);
+    top: 50%;
+    transform: translateY(-50%) rotate(45deg);
+    left: calc(var(--arrsiz) / 2 * -1 + 1px);
+    width: var(--arrsiz);
+    background: var(--col);
+}
+
+.gle-nav-avatar {
+    --size: 35px;
+
+    height: var(--size);
+    width: var(--size);
+    overflow: hidden;
+    border-radius: 50%;
+    border: 1px solid rgba(0, 0, 0, .01);
+    position: relative;
+    margin-bottom: 35px;
+}
+
+.gle-nav-avatar > img {
+    height: 100%;
+    width: 100%;
+    object-fit: cover;
+    object-position: center;
+}

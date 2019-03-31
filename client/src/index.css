@@ -1,7 +1,31 @@
+:root {
+    --navwidth: 60px;
+}
+
 html, body {
-    margin:0;
-    height:100%;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen",
+    margin: 0;
+    height: 100%;
+    font-family:  -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen",
     "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue",
     sans-serif;
+    background: #FEFEFE;
+}
+
+#root {
+    display:flex;
+}
+
+.definp {
+    border: none;
+    background: transparent;
+    box-shadow: 0;
+    outline: 0;
+    margin: 0;
+    padding: 0;
+}
+
+.rn {
+    height: 100vh;
+    width: calc(100vw - var(--navwidth));
+    position: relative;
 }

@@ -1,5 +1,4 @@
 import React, { Component } from 'react';
-import './main.css';
 
 import { Provider } from 'react-redux';
 import rstore from './rstore';
@@ -7,6 +6,15 @@ import rstore from './rstore';
 import { Switch, Route } from 'react-router';
 import { BrowserRouter } from 'react-router-dom';
 
+// Pages
+import Dashboard from './pages/dashboard';
+
+// Stuff
+import Nav from './pages/__forall__/nav';
+import links from './links';
+import { cookieControl } from './utils'
+
+// ...
 const NeedleRoute = ({ path, condition, component: Component, redirect: Redirect, ...settings }) => (
 	<Route
 		path={ path }
@@ -22,12 +30,22 @@ class App extends Component {
             <Provider store={ rstore }>
                 <BrowserRouter>
                     <>
+                        <Nav />
                         <Switch>
                             <NeedleRoute
                                 path={ '/' }
                                 condition={ true }
-                                component={ () => null) }
+                                component={ Dashboard }
                                 redirect={ () => null }
+                                exact
+                            />
+                            <Route
+                                path={ links["LOGOUT_PAGE"].route }
+                                component={() => {
+                                    cookieControl.delete(["userid"])
+
+                                    return null;
+                                }}
                                 exact
                             />
                         </Switch>
@@ -37,3 +55,5 @@ class App extends Component {
         );
     }
 }
+
+export default App;

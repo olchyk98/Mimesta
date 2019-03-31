@@ -1,0 +1,14 @@
+.rn-dashboard-section {
+    display:flex;
+    flex-direction:column;
+}
+
+.rn-dashboard-stats {
+    display:flex;
+    justify-content:center;
+    flex-wrap:wrap;
+}
+
+.rn-dashboard-stats-item {
+
+}
