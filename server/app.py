@@ -1,17 +1,39 @@
-import psycopg2
+from flask import Flask
+from flask_graphql import GraphQLView
+from schema import schema
+from db_fetch import fetch as fetchDB
 
-connection = psycopg2.connect(
-    host = "balarama.db.elephantsql.com",
-    database = "wxfhomqv",
-    user = "wxfhomqv",
-    password = "DxuMkZklXA7PhuK_wENpzUMuGUHvYjOZ"
-)
+# Create flask application
+app = Flask(__name__)
 
-# cursor = connection.cursor()
+# Create important tables
+    # Users
+fetchDB("""
+    CREATE TABLE IF NOT EXISTS Users (
+        id bigserial primary key,
+        name text NOT NULL,
+        login text NOT NULL,
+        password text NOT NULL,
+        avatar text NOT NULL
+    );
+""", False)
+    # Cards
+fetchDB("""
+    CREATE TABLE IF NOT EXISTS Desks (
+        id bigserial primary key,
+        creatorid bigserial NOT NULL,
+        ownersid text[] NOT NULL
+    );
+""", False)
 
-# cursor.execute("""""")
+# Serve GraphQL API
+app.add_url_rule('/', view_func = GraphQLView.as_view(
+    'graphql',
+    graphiql = True,
+    schema = schema
+)) 
 
-# cursor.close()
-# connection.commit()
-
-connection.close()
+# Allow to run this function using the flask manager
+if(__name__ == '__main__'):
+    app.run(debug = True, port = 4000) # Run server with live reload.
+# end
