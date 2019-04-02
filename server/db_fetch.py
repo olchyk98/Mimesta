@@ -10,7 +10,7 @@ connection = psycopg2.connect(
 )
 
 def fetch(query, tillOutput = False):
-    cursor = connection.cursor(cursor_factory=psycopg2.extras.NamedTupleCursor)
+    cursor = connection.cursor(cursor_factory = psycopg2.extras.NamedTupleCursor)
     
     cursor.execute(query)
 

@@ -5,6 +5,7 @@ from db_fetch import fetch as fetchDB
 
 # Create flask application
 app = Flask(__name__)
+app.secret_key = "pass"
 
 # Create important tables
     # Users
