@@ -10,8 +10,13 @@ const cookieControl = {
 		const b = a.exec(document.cookie);
 		return (b != null) ? unescape(b[1]) : null;
 	},
-	delete: name => {
-		document.cookie = name + '=;expires=Thu, 01 Jan 1970 00:00:01 GMT;path=/;';
+	delete: input => {
+		const a = a => (
+			document.cookie = `${ a }=;expires=Thu, 01 Jan 1970 00:00:01 GMT;path=/;`
+		);
+
+		if(Array.isArray(input)) input.forEach(a);
+		else a(input);
 	},
 	crashCookies: () => {
 		const _a = document.cookie.split(";");

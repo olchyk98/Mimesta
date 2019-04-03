@@ -3,6 +3,10 @@ const links = {
         absolute: '/',
         route: '/'
     },
+    "AUTH_PAGE": {
+        absolute: '/go',
+        route: '/go'
+    },
     "LOGOUT_PAGE": {
         absolute: '/logout',
         route: '/logout'
