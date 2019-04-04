@@ -15,7 +15,7 @@ const cookieControl = {
 			document.cookie = `${ a }=;expires=Thu, 01 Jan 1970 00:00:01 GMT;path=/;`
 		);
 
-		if(Array.isArray(input)) input.forEach(a);
+		if (Array.isArray(input)) input.forEach(a);
 		else a(input);
 	},
 	crashCookies: () => {
@@ -43,4 +43,9 @@ function shortNumber(a) { // 4913 => 4.9k
 	return a;
 }
 
-export { cookieControl, constructClassName, convertTime, shortNumber }
+export {
+	cookieControl,
+	constructClassName,
+	convertTime,
+	shortNumber
+}

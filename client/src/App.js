@@ -13,7 +13,7 @@ import Authentication from './pages/authentication'
 // Stuff
 import Nav from './pages/__forall__/nav';
 import links from './links';
-import { cookieControl } from './utils'
+import { cookieControl } from './utils';
 
 // ...
 const NeedleRoute = ({ path, condition, component: Component, redirect: Redirect, ...settings }) => (

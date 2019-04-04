@@ -6,7 +6,7 @@ from db_fetch import fetch as fetchDB
 class UserType(GraphQL.ObjectType):
     id = GraphQL.ID()
     name = GraphQL.String()
-    login = GraphQL.String()
+    email = GraphQL.String()
     password = GraphQL.String()
     avatar = GraphQL.String()
 # end
@@ -34,15 +34,15 @@ class RootMutation(GraphQL.ObjectType):
     class RegisterUserMutation(GraphQL.Mutation):
         class Arguments:
             name = GraphQL.NonNull(GraphQL.String)
-            login = GraphQL.NonNull(GraphQL.String)
+            email = GraphQL.NonNull(GraphQL.String)
             password = GraphQL.NonNull(GraphQL.String)
         # end
 
         Output = UserType
 
-        def mutate(self, info, name, login, password):
+        def mutate(self, info, name, email, password):
             # Create user
-            user = fetchDB('''INSERT INTO Users (name, login, password, avatar) VALUES ('%s', '%s', '%s', 'nothing') RETURNING *''' % (name, login, password), 'S')
+            user = fetchDB('''INSERT INTO Users (name, email, password, avatar) VALUES ('%s', '%s', '%s', 'nothing') RETURNING *''' % (name, email, password), 'S')
             session['userid'] = user.id
 
             # Return user
@@ -52,26 +52,28 @@ class RootMutation(GraphQL.ObjectType):
 
     class LoginUserMutation(GraphQL.Mutation):
         class Arguments:
-            login = GraphQL.NonNull(GraphQL.String)
+            email = GraphQL.NonNull(GraphQL.String)
             password = GraphQL.NonNull(GraphQL.String)
         # end
 
         Output = UserType
 
-        def mutate(self, info, login, password):
-            user = fetchDB('''SELECT * FROM Users WHERE (login = '%s' AND password = '%s')''' % (login, password), "S")
-            session['userid'] = user.id
-            return user
+        def mutate(self, info, email, password):
+            user = fetchDB('''SELECT * FROM Users WHERE (email = '%s' AND password = '%s')''' % (email, password), "S")
+            if(user):
+                session['userid'] = user.id
+                return user
+            else: # invalid data
+                return None
+            # end
         # end
     # end
 
     class CreateDeskMutation(GraphQL.Mutation):
-        Output = GraphQL.String
+        Output = DeskType
 
         def mutate(self, info):
-            fetchDB('''INSERT INTO Desks (creatorid, ownersid) VALUES ('1', '{"1"}')''', False)
-
-            return "oles"
+            return fetchDB('''INSERT INTO Desks (creatorid, ownersid) VALUES ('1', '{"1"}')''', False)
         # end
     # end
 

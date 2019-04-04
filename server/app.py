@@ -1,10 +1,16 @@
 from flask import Flask
+from flask_cors import CORS
 from flask_graphql import GraphQLView
 from schema import schema
 from db_fetch import fetch as fetchDB
 
 # Create flask application
 app = Flask(__name__)
+CORS(
+    app = app,
+    supports_credentials = True,
+    send_wildcard = False
+)
 app.secret_key = "RyU=9DL$$PBNdtQ5ZuWg"
 
 # Create important tables
@@ -13,7 +19,7 @@ fetchDB("""
     CREATE TABLE IF NOT EXISTS Users (
         id bigserial primary key,
         name text NOT NULL,
-        login text NOT NULL,
+        email text NOT NULL,
         password text NOT NULL,
         avatar text NOT NULL
     );
