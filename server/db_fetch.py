@@ -13,17 +13,17 @@ def fetch(query, tillOutput = False):
     cursor = connection.cursor(cursor_factory = psycopg2.extras.NamedTupleCursor)
     
     cursor.execute(query)
+    result = None
 
     if(tillOutput == 'M'): # return rows
-        results = cursor.fetchall()
-        return results
+        a = cursor.fetchall()
+        result = a
     elif(tillOutput == 'S'):
-        result = cursor.fetchone()
-        return result
-    else:
-        cursor.close()
-        connection.commit()
-
-        return None
+        a = cursor.fetchone()
+        result = a
     # end
+
+    cursor.close()
+    connection.commit()
+    return result
 # end

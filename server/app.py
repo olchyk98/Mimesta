@@ -16,37 +16,37 @@ app.config['MEDIA_SETS'] = 'avatar'
 Media(app)
 
 # Create important tables
-    # Users
-fetchDB("""
-    CREATE TABLE IF NOT EXISTS Users (
-        id bigserial primary key,
-        name text NOT NULL,
-        email text NOT NULL,
-        password text NOT NULL,
-        avatar text NOT NULL
-    );
-""", False)
-    # Desks
-fetchDB("""
-    CREATE TABLE IF NOT EXISTS Desks (
-        id bigserial primary key,
-        creatorid bigserial NOT NULL,
-        ownersid text[] NOT NULL,
-        name text NOT NULL
-    );
-""", False)
-    # Cards
-fetchDB("""
-    CREATE TABLE IF NOT EXISTS Cards (
-        id bigserial primary key,
-        creatorid bigserial NOT NULL,
-        fronttext text NOT NULL,
-        backtext text NOT NULL,
-        addtime DATE NOT NULL DEFAULT CURRENT_DATE,
-        updatetime DATE NOT NULL DEFAULT CURRENT_DATE,
-        showtimes INTEGER NOT NULL
-    );
-""", False)
+#     Users
+# fetchDB("""
+#     CREATE TABLE IF NOT EXISTS Users (
+#         id bigserial primary key,
+#         name text NOT NULL,
+#         email text NOT NULL,
+#         password text NOT NULL,
+#         avatar text NOT NULL
+#     );
+# """, False)
+#     # Desks
+# fetchDB("""
+#     CREATE TABLE IF NOT EXISTS Desks (
+#         id bigserial primary key,
+#         creatorid bigserial NOT NULL,
+#         ownersid text[] NOT NULL,
+#         name text NOT NULL
+#     );
+# """, False)
+#     # Cards
+# fetchDB("""
+#     CREATE TABLE IF NOT EXISTS Cards (
+#         id bigserial primary key,
+#         creatorid bigserial NOT NULL,
+#         fronttext text NOT NULL,
+#         backtext text NOT NULL,
+#         addtime DATE NOT NULL DEFAULT CURRENT_DATE,
+#         updatetime DATE NOT NULL DEFAULT CURRENT_DATE,
+#         showtimes INTEGER NOT NULL
+#     );
+# """, False)
 
 # Serve GraphQL API
 app.add_url_rule('/', view_func = GraphQLView.as_view(
