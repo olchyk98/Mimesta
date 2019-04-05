@@ -8,7 +8,7 @@ import { constructClassName, cookieControl } from '../../utils';
 import client from '../../apollo';
 
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faLock, faAt } from '@fortawesome/free-solid-svg-icons';
+import { faLock, faAt, faSignature } from '@fortawesome/free-solid-svg-icons';
 
 class FormsInput extends Component {
     constructor(props) {
@@ -125,19 +125,19 @@ class LoginForm extends Component {
                 isSuccess: true
             }));
 
-            // cookieControl.set("userdata", JSON.stringify({
-            //     id: a.id,
-            //     name: a.name
-            // }));
+            cookieControl.set("userdata", JSON.stringify({
+                id: a.id,
+                name: a.name
+            }));
 
-            // window.location.reload();
+            window.location.reload();
         });
     }
 
     render() {
         return(
             <form className="rn-authentication-forms-item" onSubmit={ e => { e.preventDefault(); this.doLogin(); } }>
-                <h1 className="rn-authentication-forms-title">Log in to your account</h1>
+                <h1 className="rn-authentication-forms-title">Welcome back!</h1>
                 <FormsInput
                     icon={ faAt }
                     placeholder="Email"
@@ -165,17 +165,147 @@ class LoginForm extends Component {
                     "rn-authentication-forms-sbtn submit definp": true,
                     "inlogin": this.state.loginInProcess
                 })}>Log in</button>
-                <p className="rn-authentication-forms-stagetrans">Need a Mimesta account? <button onClick={ () => this.props.moveStage("REGISTER_STAGE") } className="link definp">Create an account</button></p>
+                <p className="rn-authentication-forms-stagetrans">Need a Mimesta account? <button type="button" onClick={ () => this.props.moveStage("REGISTER_STAGE") } className="link definp">Create an account</button></p>
+            </form>
+        );
+    }
+}
+
+class RegisterForm extends Component {
+    constructor(props) {
+        super(props);
+
+        this.state = {
+            isError: false,
+            isSuccess: false,
+            registerInProcess: false
+        }
+
+        this.data = {
+            name: null,
+            email: null,
+            password: null
+        }
+    }
+
+    doRegister = () => {
+        const { email, password, name } = this.data,
+              strec = a => !!a && !!a.replace(/\s|\n/g, "").length;
+        
+        if(this.state.registerInProcess || !strec(email) || !strec(password) || !strec(name)) return;
+
+        this.setState(() => ({
+            registerInProcess: true,
+            isError: false,
+            isSuccess: false
+        }));
+
+        client.mutate({
+            mutation: gql`
+                mutation($name: String!, $email: String!, $password: String!) {
+                    registerUser(name: $name, email: $email, password: $password) {
+                        id,
+                        name
+                    }
+                }
+            `,
+            variables: { email, password, name }
+        }).then(({ data: { registerUser: a } }) => {
+            this.setState(() => ({
+                registerInProcess: false
+            }));
+
+            if(!a) {
+                this.setState(() => ({
+                    isError: true
+                }));
+                return;
+            }
+
+            this.setState(() => ({
+                isSuccess: true
+            }));
+
+            cookieControl.set("userdata", JSON.stringify({
+                id: a.id,
+                name: a.name
+            }));
+
+            window.location.reload();
+        });
+    }
+
+    render() {
+        return(
+            <form className="rn-authentication-forms-item" onSubmit={ e => { e.preventDefault(); this.doRegister(); } }>
+                <h1 className="rn-authentication-forms-title">Register to continue</h1>
+                <FormsInput
+                    icon={ faSignature }
+                    placeholder="Name"
+                    type="text"
+                    required={ true }
+                    isError={ this.state.isError }
+                    isSuccess={ this.state.isSuccess }
+                    isLoading={ this.state.registerInProcess }
+                    onChange={ a => this.data.name = a }
+                />
+                <FormsInput
+                    icon={ faAt }
+                    placeholder="Email"
+                    type="text"
+                    required={ true }
+                    isError={ this.state.isError }
+                    isSuccess={ this.state.isSuccess }
+                    isLoading={ this.state.registerInProcess }
+                    onChange={ a => this.data.email = a }
+                />
+                <FormsInput
+                    icon={ faLock }
+                    placeholder="Password"
+                    type="password"
+                    required={ true }
+                    isError={ this.state.isError }
+                    isSuccess={ this.state.isSuccess }
+                    isLoading={ this.state.registerInProcess }
+                    onChange={ a => this.data.password = a }
+                />
+                <button
+                    type="submit"
+                    disabled={ this.state.registerInProcess }
+                    className={constructClassName({
+                    "rn-authentication-forms-sbtn submit definp": true,
+                    "inlogin": this.state.registerInProcess
+                })}>Register</button>
+                <p className="rn-authentication-forms-stagetrans">Already have a Mimesta account? <button type="button" onClick={ () => this.props.moveStage("LOGIN_STAGE") } className="link definp">Log in</button></p>
             </form>
         );
     }
 }
 
 class Forms extends Component {
+    constructor(props) {
+        super(props);
+
+        this.state = {
+            stage: "LOGIN_STAGE" // LOGIN_STAGE, REGISTER_STAGE
+        }
+    }
+
+    moveStage = stage => this.setState({ stage });
+    
     render() {
+        const C = {
+            "LOGIN_STAGE": LoginForm,
+            "REGISTER_STAGE": RegisterForm
+        }[this.state.stage];
+
         return(
             <div className="rn-authentication-part rn-authentication-forms">
-                <LoginForm />
+                {
+                    (C) ? <C
+                        moveStage={ this.moveStage }
+                    /> : null
+                }
             </div>
         );
     }

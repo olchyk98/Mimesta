@@ -41,6 +41,11 @@ class RootMutation(GraphQL.ObjectType):
         Output = UserType
 
         def mutate(self, info, name, email, password):
+            # Check if user with that email already exists
+            iu = fetchDB('''SELECT id FROM Users WHERE (email = '%s')''' % (email), 'S')
+            print(iu)
+            if(iu): return None
+
             # Create user
             user = fetchDB('''INSERT INTO Users (name, email, password, avatar) VALUES ('%s', '%s', '%s', 'nothing') RETURNING *''' % (name, email, password), 'S')
             session['userid'] = user.id
@@ -59,7 +64,7 @@ class RootMutation(GraphQL.ObjectType):
         Output = UserType
 
         def mutate(self, info, email, password):
-            user = fetchDB('''SELECT * FROM Users WHERE (email = '%s' AND password = '%s')''' % (email, password), "S")
+            user = fetchDB('''SELECT * FROM Users WHERE (email = '%s' AND password = '%s')''' % (email, password), 'S')
             if(user):
                 session['userid'] = user.id
                 return user

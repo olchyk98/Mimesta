@@ -8,8 +8,7 @@ from db_fetch import fetch as fetchDB
 app = Flask(__name__)
 CORS(
     app = app,
-    supports_credentials = True,
-    send_wildcard = False
+    supports_credentials = True
 )
 app.secret_key = "RyU=9DL$$PBNdtQ5ZuWg"
 
