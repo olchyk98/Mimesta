@@ -9,16 +9,31 @@ class UserType(GraphQL.ObjectType):
     email = GraphQL.String()
     password = GraphQL.String()
     avatar = GraphQL.String()
+    #-
     desks = GraphQL.List(lambda: DeskType)
-    def resolve_desks(self, info):
-        return fetchDB('''SELECT * FROM Desks WHERE (creatorid = '%s')''' % (self.id))
-    # end
+    resolve_desks = lambda self, info: fetchDB('''SELECT * FROM Desks WHERE (creatorid = '%s')''' % (self.id))
+    #-
 # end
 
 class DeskType(GraphQL.ObjectType):
     id = GraphQL.ID()
     creatorid = GraphQL.ID()
     ownersid = GraphQL.List(GraphQL.ID)
+    #-
+    cards = GraphQL.List(lambda: CardType)
+    resolve_cards = lambda self, info: fetchDB('''SELECT * FROM Cards WHERE (deskid = '%s')''' % (self.id))
+    #-
+# end
+
+class CardType(GraphQL.ObjectType):
+    id = GraphQL.ID()
+    deskid = GraphQL.ID()
+    creatorid = GraphQL.ID()
+    fronttext = GraphQL.String()
+    backtext = GraphQL.String()
+    addtime = GraphQL.DateTime()
+    updatetime = GraphQL.DateTime()
+    showtimes = GraphQL.Int()
 # end
 
 class RootQuery(GraphQL.ObjectType):
@@ -32,6 +47,16 @@ class RootQuery(GraphQL.ObjectType):
         return fetchDB('''SELECT * FROM Users''', 'M')
     # end
     # --- DEVELOPMENT ---
+    user = GraphQL.Field(UserType)
+    def resolve_user(self, info):
+        uid = session.get('userid', None)
+        if(uid):
+            return fetchDB('''SELECT * FROM Users WHERE (id = '%s')''' % (uid), 'S')
+        # end
+        else:
+            return None
+        # end
+    # end
 # end
 
 class RootMutation(GraphQL.ObjectType):
@@ -47,11 +72,12 @@ class RootMutation(GraphQL.ObjectType):
         def mutate(self, info, name, email, password):
             # Check if user with that email already exists
             iu = fetchDB('''SELECT id FROM Users WHERE (email = '%s')''' % (email), 'S')
-            print(iu)
             if(iu): return None
 
             # Create user
-            user = fetchDB('''INSERT INTO Users (name, email, password, avatar) VALUES ('%s', '%s', '%s', 'nothing') RETURNING *''' % (name, email, password), 'S')
+            defavatar = '/default/avatar.jpeg'
+            
+            user = fetchDB('''INSERT INTO Users (name, email, password, avatar) VALUES ('%s', '%s', '%s', '%s') RETURNING *''' % (name, email, password, defavatar), 'S')
             session['userid'] = user.id
 
             # Return user
