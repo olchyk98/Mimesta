@@ -9,6 +9,10 @@ class UserType(GraphQL.ObjectType):
     email = GraphQL.String()
     password = GraphQL.String()
     avatar = GraphQL.String()
+    desks = GraphQL.List(lambda: DeskType)
+    def resolve_desks(self, info):
+        return fetchDB('''SELECT * FROM Desks WHERE (creatorid = '%s')''' % (self.id))
+    # end
 # end
 
 class DeskType(GraphQL.ObjectType):
@@ -75,10 +79,20 @@ class RootMutation(GraphQL.ObjectType):
     # end
 
     class CreateDeskMutation(GraphQL.Mutation):
+        class Arguments:
+            name = GraphQL.NonNull(GraphQL.String)
+        # end
+
         Output = DeskType
 
-        def mutate(self, info):
-            return fetchDB('''INSERT INTO Desks (creatorid, ownersid) VALUES ('1', '{"1"}')''', False)
+        def mutate(self, info, name):
+            uid = session.get('userid', None)
+            
+            if(uid):
+                return fetchDB('''INSERT INTO Desks (creatorid, ownersid) VALUES ('%s', '{"%s"}') RETURNING *''' % (uid, uid), 'S')
+            else:
+                raise GraphQLError("No session")
+            # end
         # end
     # end
 

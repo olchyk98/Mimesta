@@ -43,14 +43,14 @@ class App extends Component {
                                 path={ links["HOME_PAGE"].absolute }
                                 condition={ !!this.clientID }
                                 component={ Dashboard }
-                                redirect={ () => null }
+                                redirect={ Authentication }
                                 exact
                             />
                             <NeedleRoute
                                 path={ links["AUTH_PAGE"].absolute }
-                                condition={ true }
+                                condition={ !this.clientID }
                                 component={ Authentication }
-                                redirect={ () => null }
+                                redirect={ Dashboard }
                                 exact
                             />
                             <Route

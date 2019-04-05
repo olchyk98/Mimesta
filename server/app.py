@@ -39,7 +39,7 @@ app.add_url_rule('/', view_func = GraphQLView.as_view(
     schema = schema
 )) 
 
-# Allow to run this function using the flask manager
+# Allow to run this function using flask manager
 if(__name__ == '__main__'):
     app.run(debug = True, port = 4000) # Run server with live reload.
 # end
