@@ -54,7 +54,6 @@ class Cards extends PureComponent {
     render() {
         return(
             <section
-                onBlur={ this.props.onBlur }
                 onFocus={ this.props.onFocus }
                 className="rn-desk-cards definp"
                 tabIndex="-1">
@@ -95,8 +94,6 @@ class AddCardModal extends Component {
         super(props);
 
         this.initialState = {
-            cardFront: "",
-            cardBack: "",
             cardRotated: false,
             canSubmit: false
         }
@@ -111,23 +108,36 @@ class AddCardModal extends Component {
 
     componentDidUpdate(pprops) {
         { // Check if card can be submitted
+            const _a = this.sidesRef.front.textContent,
+                  _b = this.sidesRef.back.textContent;
+
             const a = (
-                this.state.cardFront &&
-                this.state.cardFront.replace(/\s|\n/g).length &&
-                this.state.cardBack &&
-                this.state.cardBack.replace(/\s|\n/g).length
+                _a && _b.replace(/\s|\n/g).length &&
+                _a && _b.replace(/\s|\n/g).length
             );
 
             if(this.state.canSubmit !== a) this.setState({ canSubmit: a });
         }
 
         // Reset state when modal is activating
-        if(!pprops.activeStatus && this.props.activeStatus) this.reset();
+        if(!pprops.activeStatus && this.props.activeStatus) {
+            this.reset();
+
+            if(this.props.activeStatus === "MODIFY") {
+                const { front, back } = this.props.cardModifyData;
+                this.setCustomContent({ front, back });
+            }
+        }
     }
 
     reset = () => {
         this.setState(this.initialState);
         for(let ma of Object.values(this.sidesRef)) ma.textContent = "";
+    }
+
+    setCustomContent = ({ front, back }) => {
+        this.sidesRef.front.textContent = front;
+        this.sidesRef.back.textContent = back;
     }
 
     render() {
@@ -149,8 +159,8 @@ class AddCardModal extends Component {
                             disabled={ !this.state.canSubmit }
                             onClick={(this.state.canSubmit) ? (() => {
                                 this.props.submitCard({
-                                    front: this.state.cardFront,
-                                    back: this.state.cardBack
+                                    front: this.sidesRef.front.textContent,
+                                    back: this.sidesRef.back.textContent
                                 });
                                 this.props.onClose();
                             }) : null}>
@@ -167,7 +177,6 @@ class AddCardModal extends Component {
                                 contentEditable={ true }
                                 placeholder="Start typing..."
                                 className="definp rn-desk-addcardmod-card-target"
-                                onInput={ ({ target: { textContent: a } }) => this.setState({ cardFront: a }) }
                                 ref={ ref => this.sidesRef.front = ref }
                             >{""}</h1>
                         </div>
@@ -177,7 +186,6 @@ class AddCardModal extends Component {
                                 contentEditable={ true }
                                 placeholder="Start typing..."
                                 className="definp rn-desk-addcardmod-card-target"
-                                onInput={ ({ target: { textContent: a } }) => this.setState({ cardBack: a }) }
                                 ref={ ref => this.sidesRef.back = ref }
                             >{""}</h1>
                         </div>
@@ -199,6 +207,19 @@ class Hero extends Component {
             cardModifyData: null,
             cardProcessing: false
         }
+
+        this.cardQuery = `
+            id,
+            creator {
+                id,
+                name
+            },
+            fronttext,
+            backtext,
+            addtime,
+            updatetime,
+            showtimes
+        `;
     }
 
     componentDidMount() {
@@ -215,16 +236,7 @@ class Hero extends Component {
                         cardsInt,
                         ownersInt,
                         cards {
-                            id,
-                            creator {
-                                id,
-                                name
-                            },
-                            fronttext,
-                            backtext,
-                            addtime,
-                            updatetime,
-                            showtimes
+                            ${ this.cardQuery }
                         },
                         creator {
                             id,
@@ -243,7 +255,9 @@ class Hero extends Component {
         }).catch(console.error);
     }
 
-    selectCard = id => this.setState({ selectedCard: id })
+    selectCard = id => this.setState(({ selectedCard: a }) => ({
+        selectedCard: (id !== null && a !== id) ? id : null
+    }));
 
     updateDeskName = name => {
         client.mutate({
@@ -279,16 +293,7 @@ class Hero extends Component {
             mutation: gql`
                 mutation($id: ID!, $front: String!, $back: String!) {
                     addDeskCard(deskID: $id, front: $front, back: $back) {
-                        id,
-                        creator {
-                            id,
-                            name
-                        },
-                        fronttext,
-                        backtext,
-                        addtime,
-                        updatetime,
-                        showtimes
+                        ${ this.cardQuery }
                     }
                 }
             `,
@@ -318,11 +323,35 @@ class Hero extends Component {
 
         client.mutate({
             mutation: gql`
-                mutation($cardID: ID!) {
-
+                mutation($cardID: ID!, $deskID: ID!, $front: String!, $back: String!) {
+                    updateCardContent(id: $cardID, deskID: $deskID, front: $front, back: $back) {
+                        ${ this.cardQuery }
+                    }
                 }
-            `
-        })
+            `,
+            variables: {
+                cardID: this.state.selectedCard,
+                deskID: this.state.desk.id,
+                front, back
+            }
+        }).then(({ data: { updateCardContent: a } }) => {
+             this.setState(() => ({
+                cardProcessing: false
+            }));
+            if(!a) return null;
+
+            const b = Array.from(this.state.desk.cards);
+            b[b.findIndex(io => io.id === a.id)] = a;
+            this.setState(({ desk }) => ({
+                desk: {
+                    ...desk,
+                    cards: b
+                }
+            }));      
+        }).catch((err) => {
+            console.error(err);
+            this.setState(() => ({ cardProcessing: false }));
+        });
     }
     
     render() {
@@ -330,19 +359,20 @@ class Hero extends Component {
             <>
                 <AddCardModal
                     activeStatus={ this.state.addingCard }
-                    submitCard={() => {
+                    submitCard={(data) => {
                         const a = this.state.addingCard;
 
                         switch(a) {
                             case 'ADD':
-                                this.addDeskCard();
+                                this.addDeskCard(data);
                             break;
                             case 'MODIFY':
-                                this.modifyDeskCard();
+                                this.modifyDeskCard(data);
                             break;
                             default:break;
                         }
                     }}
+                    cardModifyData={ this.state.cardModifyData }
                     onClose={ () => this.setState({ addingCard: false, cardModifyData: null }) }
                 />
                 <div className="rn rn-desk">
@@ -360,7 +390,6 @@ class Hero extends Component {
                                     cards={ this.state.desk.cards }
                                     selectCard={ this.selectCard }
                                     selectedCard={ this.state.selectedCard }
-                                    onBlur={ () => this.selectCard(null) }
                                 />
                                 <div className="rn-desk-circlecon">
                                     {
@@ -375,12 +404,19 @@ class Hero extends Component {
                                                 id: 2,
                                                 icon: faPen,
                                                 noRender: this.state.selectedCard === null,
-                                                onClick: () => {
+                                                onClick: (e) => {
+                                                    e.preventDefault(); // Do not blur table
+
+                                                    const a = this.state.desk.cards.find(io => (
+                                                        io.id === this.state.selectedCard
+                                                    ));
+                                                    if(!a) return;
+
+                                                    const { fronttext: front, backtext: back } = a;
+
                                                     this.setState(() => ({
                                                         addingCard: "MODIFY",
-                                                        cardModifyData: this.state.desk.cards.find(io => (
-                                                            io.id === this.state.selectedCard
-                                                        ))
+                                                        cardModifyData: { front, back }
                                                     }))
                                                 }
                                             },
