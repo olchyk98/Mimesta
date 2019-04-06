@@ -1,0 +1,34 @@
+.gle-loadicon {
+    --size: 30px;
+
+    height: var(--size);
+    width: var(--size);
+    border-radius: 50%;
+    border:7.5px solid transparent;
+    animation: gle-loadicon-main 1s ease-in-out alternate infinite;
+    margin: auto;
+}
+
+@keyframes gle-loadicon-main {
+    0% {
+        border-color: orange;
+        transform: scale(0);
+    }
+
+    25% {
+        border-color: rebeccapurple;
+        transform: scale(1.1);
+    }
+
+    50% {
+        transform: scale(.9);
+    }
+
+    75% {
+        transform: scale(1);
+    }
+
+    100% {
+        transform: scale(0);
+    }
+}

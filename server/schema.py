@@ -20,12 +20,20 @@ class DeskType(GraphQL.ObjectType):
     creatorid = GraphQL.ID()
     ownersid = GraphQL.List(GraphQL.ID)
     name = GraphQL.String()
-    #-
+    # -
     cards = GraphQL.List(lambda: CardType)
     resolve_cards = lambda self, info: fetchDB('''SELECT * FROM Cards WHERE (deskid = '%s')''' % (self.id), 'M')
-    #-
+    # -
     cardsInt = GraphQL.Int()
     resolve_cardsInt = lambda self, info: fetchDB('''SELECT COUNT(*) FROM Cards WHERE (deskid = '%s')''' % (self.id), 'S').count
+    # -
+    ownersInt = GraphQL.Int()
+    resolve_ownersInt = lambda self, info: len(self.ownersid)
+    # -
+    creator = GraphQL.Field(UserType)
+    resolve_creator = lambda self, info: fetchDB('''SELECT * FROM Users WHERE id = '%s' ''' % (self.creatorid), 'S')
+
+
 # end
 
 class CardType(GraphQL.ObjectType):
@@ -37,6 +45,8 @@ class CardType(GraphQL.ObjectType):
     addtime = GraphQL.DateTime()
     updatetime = GraphQL.DateTime()
     showtimes = GraphQL.Int()
+    creator = GraphQL.Field(lambda: UserType)
+    resolve_creator = lambda self, info: fetchDB('''SELECT * FROM Users WHERE id = '%s' ''' % (self.creatorid), 'S')
 # end
 
 class RootQuery(GraphQL.ObjectType):
@@ -65,7 +75,7 @@ class RootQuery(GraphQL.ObjectType):
         uid = session.get('userid', None)
 
         if(uid):
-            return fetchDB('''SELECT * FROM Desks WHERE id = '%s' AND ownersid @> ARRAY['%s']::varchar[]''' % (id, uid))
+            return fetchDB('''SELECT * FROM Desks WHERE id = '%s' AND '{"%s"}' @> ownersid''' % (id, uid), 'S')
         else:
             return None
         # end
@@ -133,9 +143,26 @@ class RootMutation(GraphQL.ObjectType):
         # end
     # end
 
+    class UpdateDeskNameMutation(GraphQL.Mutation):
+        class Arguments:
+            name = GraphQL.NonNull(GraphQL.String)
+            id = GraphQL.NonNull(GraphQL.ID)
+        # end
+
+        Output = DeskType
+
+        def mutate(self, info, id, name):
+            uid = session.get('userid', None)
+            if(not uid): raise GraphQLError("No session")
+
+            return fetchDB('''UPDATE Desks SET name = '%s' WHERE id = '%s' AND '{"%s"}' @> ownersid RETURNING *''' % (name, uid, id), 'S')
+        # end
+    # end
+
     registerUser = RegisterUserMutation.Field()
     loginUser = LoginUserMutation.Field()
     createDesk = CreateDeskMutation.Field()
+    updateDeskName = UpdateDeskNameMutation.Field()
 # end
 
-schema = GraphQL.Schema(query = RootQuery, mutation = RootMutation)
+schema = GraphQL.Schema(query = RootQuery, mutation = RootMutation, auto_camelcase = False)

@@ -180,3 +180,94 @@
 .rn-desk-circlecon-item:hover {
     background: rgb(65, 173, 243);
 }
+
+.rn-desk-addcardmod_bg {
+    height: 100vh;
+    width: 100vw;
+    position: fixed;
+    z-index: 1999;
+    background: rgba(0, 0, 0, .2);
+    top: 0;
+    left: 0;
+}
+
+.rn-desk-addcardmod>* {
+    margin: 7.5px 0;
+}
+
+.rn-desk-addcardmod {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    margin-right: 50%;
+    transform: translate(-50%, -50%);
+    display: flex;
+    flex-direction: column;
+    z-index: 2000;
+}
+
+.rn-desk-addcardmod-controls {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.rn-desk-addcardmod-card {
+    height: 300px;
+    width: 600px;
+    max-width: calc(100% - 15px);
+    position: relative;
+    perspective:700px;
+}
+
+.rn-desk-addcardmod-card-side {
+    background: white;
+    border-radius: 5px;
+    height: 100%;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow:scroll;
+    backface-visibility:hidden;
+    position:absolute;
+    top:0;
+    left:0;
+    transition:.45s;
+}
+
+.rn-desk-addcardmod-card-side.front {
+    transform:rotateX(360deg);
+}
+
+.rn-desk-addcardmod-card-side.back {
+    transform:rotateX(180deg);
+}
+
+.rn-desk-addcardmod-card.active .rn-desk-addcardmod-card-side.front {
+    transform:rotateX(180deg);
+}
+
+.rn-desk-addcardmod-card.active .rn-desk-addcardmod-card-side.back {
+    transform:rotateX(0deg);
+}
+
+.rn-desk-addcardmod-card-target {
+    font-size: 2.25em;
+    font-family: "Arial";
+    text-align: center;
+    cursor: text;
+    word-break:break-word;
+    max-width:calc(100% - 35px);
+}
+
+.rn-desk-addcardmod-card-target:empty:before {
+    content: 'Start typing...';
+    opacity:.75;
+    transition:.15s;
+}
+
+.rn-desk-addcardmod-card-target:empty:focus:before {
+    opacity:.15;
+}

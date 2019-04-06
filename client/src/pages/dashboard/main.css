@@ -32,19 +32,20 @@
     align-items: center;
     justify-content: center;
     transition: .25s;
-    opacity:0;
-    animation:dashboard-stats-item-appear .25s ease-in-out;
-    animation-fill-mode:forwards
+    opacity: 0;
+    animation: dashboard-stats-item-appear .25s ease-in-out;
+    animation-fill-mode: forwards
 }
 
 @keyframes dashboard-stats-item-appear {
     from {
-        transform:translateY(15px);
-        opacity:0;
+        transform: translateY(15px);
+        opacity: 0;
     }
+
     to {
-        transform:translateY(0);
-        opacity:1;
+        transform: translateY(0);
+        opacity: 1;
     }
 }
 
