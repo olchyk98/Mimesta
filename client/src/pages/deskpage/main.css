@@ -169,6 +169,20 @@
     transition: .15s;
 }
 
+.rn-desk-circlecon-item.loading {
+    animation:pagedesk-circlecon-loading-iam 1.25s linear infinite;
+    background:red;
+}
+
+@keyframes pagedesk-circlecon-loading-iam {
+    from {
+        transform:rotate(0deg);
+    }
+    to {
+        transform:rotate(360deg);
+    }
+}
+
 .rn-desk-circlecon-item:first-child {
     margin-top: 0;
 }
@@ -179,6 +193,22 @@
 
 .rn-desk-circlecon-item:hover {
     background: rgb(65, 173, 243);
+}
+
+.rn-desk-addcardmod_bg,
+.rn-desk-addcardmod {
+    --trans:.25s;
+
+    visibility:hidden;
+    opacity:0;
+    transition:all var(--trans), visibility var(--trans);
+}
+
+.rn-desk-addcardmod_bg.active,
+.rn-desk-addcardmod_bg.active ~ .rn-desk-addcardmod {
+    opacity:1;
+    visibility:visible;
+    transition:all var(--trans), visibility 0s;
 }
 
 .rn-desk-addcardmod_bg {
@@ -192,7 +222,7 @@
 }
 
 .rn-desk-addcardmod>* {
-    margin: 7.5px 0;
+    margin: 5px 0;
 }
 
 .rn-desk-addcardmod {
@@ -204,19 +234,47 @@
     display: flex;
     flex-direction: column;
     z-index: 2000;
+    width: 600px;
+    max-width: calc(100% - 15px);
 }
 
 .rn-desk-addcardmod-controls {
-    width: 100%;
+    width:100%;
     display: flex;
     align-items: center;
     justify-content: space-between;
 }
 
+.rn-desk-addcardmod-controls-item {
+    --size:25px;
+
+    height:var(--size);
+    width:var(--size);
+    cursor:pointer;
+    font-size:1.05em;
+    border-radius:2.5px;
+    background:white;
+    border:1px solid rgba(0, 0, 0, .01);
+    transition:.15s;
+}
+
+.rn-desk-addcardmod-controls-item:disabled {
+    opacity:.5;
+    cursor:no-drop;
+}
+
+.rn-desk-addcardmod-controls-item:not(:disabled):hover {
+    transform:scale(1.05);
+}
+
+.rn-desk-addcardmod-controls-item:not(:disabled):active {
+    transition:.075s;
+    transform:scale(.95);
+}
+
 .rn-desk-addcardmod-card {
     height: 300px;
-    width: 600px;
-    max-width: calc(100% - 15px);
+    width:100%;
     position: relative;
     perspective:700px;
 }
@@ -245,11 +303,11 @@
     transform:rotateX(180deg);
 }
 
-.rn-desk-addcardmod-card.active .rn-desk-addcardmod-card-side.front {
+.rn-desk-addcardmod-card.rotated .rn-desk-addcardmod-card-side.front {
     transform:rotateX(180deg);
 }
 
-.rn-desk-addcardmod-card.active .rn-desk-addcardmod-card-side.back {
+.rn-desk-addcardmod-card.rotated .rn-desk-addcardmod-card-side.back {
     transform:rotateX(0deg);
 }
 

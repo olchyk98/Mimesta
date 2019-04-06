@@ -2,7 +2,7 @@ import React, { Component, PureComponent } from 'react';
 import './main.css';
 
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faPlay, faPlus, faPen, faCheck } from '@fortawesome/free-solid-svg-icons';
+import { faPlay, faPlus, faPen, faCheck, faSyncAlt } from '@fortawesome/free-solid-svg-icons';
 
 import client from '../../apollo';
 import links from '../../links';
@@ -94,32 +94,82 @@ class AddCardModal extends Component {
     constructor(props) {
         super(props);
 
-        this.state = {
-            card: null
+        this.initialState = {
+            cardFront: "",
+            cardBack: "",
+            cardRotated: false,
+            canSubmit: false
         }
+
+        this.state = this.initialState;
+
+        this.sidesRef = {
+            front: React.createRef(),
+            back: React.createRef()
+        }
+    }
+
+    componentDidUpdate(pprops) {
+        { // Check if card can be submitted
+            const a = (
+                this.state.cardFront &&
+                this.state.cardFront.replace(/\s|\n/g).length &&
+                this.state.cardBack &&
+                this.state.cardBack.replace(/\s|\n/g).length
+            );
+
+            if(this.state.canSubmit !== a) this.setState({ canSubmit: a });
+        }
+
+        // Reset state when modal is activating
+        if(!pprops.visible && this.props.visible) this.reset();
+    }
+
+    reset = () => {
+        this.setState(this.initialState);
+        for(let ma of Object.values(this.sidesRef)) ma.textContent = "";
     }
 
     render() {
         return(
             <>
-                <div className={constructClassName({
+                <div onClick={ () => { this.props.onClose(); } } className={constructClassName({
                     "rn-desk-addcardmod_bg": true,
                     "active": this.props.visible
                 })} />
                 <div className="rn-desk-addcardmod">
                     <div className="rn-desk-addcardmod-controls">
-                        <button className="rn-desk-addcardmod-controls definp">
-                            <FontAwesomeIcon icon={} />
+                        <button
+                            className="rn-desk-addcardmod-controls-item definp"
+                            onClick={ () => this.setState(({ cardRotated: a }) => ({ cardRotated: !a })) }>
+                            <FontAwesomeIcon icon={ faSyncAlt } />
+                        </button>
+                        <button
+                            className="rn-desk-addcardmod-controls-item definp"
+                            disabled={ !this.state.canSubmit }
+                            onClick={(this.state.canSubmit) ? (() => {
+                                this.props.submitCard({
+                                    front: this.state.cardFront,
+                                    back: this.state.cardBack
+                                });
+                                this.props.onClose();
+                            }) : null}>
+                            <FontAwesomeIcon icon={ faCheck } />
                         </button>
                     </div>
-                    <div className="rn-desk-addcardmod-card">
+                    <div className={constructClassName({
+                        "rn-desk-addcardmod-card": true,
+                        "rotated": this.state.cardRotated
+                    })}>
                         <div className="rn-desk-addcardmod-card-side front">
                             <h1
                                 suppressContentEditableWarning={ true }
                                 contentEditable={ true }
                                 placeholder="Start typing..."
                                 className="definp rn-desk-addcardmod-card-target"
-                            ></h1>
+                                onInput={ ({ target: { textContent: a } }) => this.setState({ cardFront: a }) }
+                                ref={ ref => this.sidesRef.front = ref }
+                            >{""}</h1>
                         </div>
                         <div className="rn-desk-addcardmod-card-side back">
                             <h1
@@ -127,7 +177,9 @@ class AddCardModal extends Component {
                                 contentEditable={ true }
                                 placeholder="Start typing..."
                                 className="definp rn-desk-addcardmod-card-target"
-                            ></h1>
+                                onInput={ ({ target: { textContent: a } }) => this.setState({ cardBack: a }) }
+                                ref={ ref => this.sidesRef.back = ref }
+                            >{""}</h1>
                         </div>
                     </div>
                 </div>
@@ -143,7 +195,8 @@ class Hero extends Component {
         this.state = {
             desk: null,
             selectedCard: null,
-            addingCard: false
+            addingCard: false,
+            addCardProcessing: false
         }
     }
 
@@ -216,12 +269,28 @@ class Hero extends Component {
             }));
         }).catch(console.error);
     }
+
+    addDeskCard = ({ front, back }) => {
+        if(this.state.addCardProcessing) return;
+
+        this.setState(() => ({ addCardProcessing: true }));
+
+        client.mutate({
+            mutation: gql`
+            
+            `
+        }).then(() => {
+
+        }).catch(console.error);
+    }
     
     render() {
         return(
             <>
                 <AddCardModal
-                    visible={ true || this.state.addingCard } // DEBUG
+                    visible={ this.state.addingCard }
+                    submitCard={ this.addDeskCard }
+                    onClose={ () => this.setState({ addingCard: false }) }
                 />
                 <div className="rn rn-desk">
                     {
@@ -246,7 +315,8 @@ class Hero extends Component {
                                             {
                                                 id: 1,
                                                 icon: faPlus,
-                                                onClick: () => null
+                                                onClick: () => this.setState({ addingCard: true }),
+                                                loading: this.state.addCardProcessing
                                             },
                                             {
                                                 id: 2,
@@ -259,11 +329,15 @@ class Hero extends Component {
                                                 icon: faPlay,
                                                 onClick: () => null
                                             }
-                                        ].map(({ id, icon, onClick, noRender }) => (!noRender) ? (
+                                        ].map(({ id, icon, onClick, noRender, loading }) => (!noRender) ? (
                                             <button
                                                 key={ id }
-                                                className="rn-desk-circlecon-item definp"
-                                                onClick={ onClick }>
+                                                className={constructClassName({
+                                                    "rn-desk-circlecon-item definp": true,
+                                                    "loading": loading
+                                                })}
+                                                onClick={ onClick }
+                                                disabled={ loading || false }>
                                                 <FontAwesomeIcon icon={ icon } />
                                             </button>
                                         ) : null)
