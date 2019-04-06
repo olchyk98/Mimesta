@@ -1,0 +1,182 @@
+.rn-desk {
+    background: white;
+}
+
+.rn-desk-cover {
+    height: 300px;
+    width: 100%;
+    background: linear-gradient(135deg, #1347D1, #1B4ED3);
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+}
+
+.rn-desk-cover>*:not(.rn-desk-cover-circle) {
+    z-index: 2;
+}
+
+.rn-desk-cover-circle {
+    --col: rgba(255, 255, 255, .01);
+
+    position: absolute;
+    height: var(--size);
+    width: var(--size);
+    background: rgba(255, 255, 255, .075);
+    box-shadow: 0px 0px 5px 5px var(--col);
+    border-radius: 50%;
+    left: 0;
+    z-index: 0;
+    visibility: hidden;
+    animation: pagedesk-cover-circlemv 25s linear infinite;
+}
+
+@keyframes pagedesk-cover-circlemv {
+    from {
+        transform: translateX(-100%);
+        visibility: visible;
+    }
+
+    to {
+        transform: translateX(100vw);
+        visibility: visible;
+    }
+}
+
+.rn-desk-cover-circle.o {
+    --size: 200px;
+
+    top: calc(var(--size) * .2 * -1 + 20px);
+    animation-delay: .5s;
+    animation-duration: 17.5s;
+}
+
+.rn-desk-cover-circle.s {
+    --size: 100px;
+
+    top: 17.5%;
+    animation-delay: 7.5s;
+    animation-duration: 30s;
+}
+
+.rn-desk-cover-circle.t {
+    --size: 150px;
+
+    bottom: 5%;
+    animation-delay: 7.75s;
+    animation-duration: 25s;
+}
+
+.rn-desk-cover-title,
+.rn-desk-cover-info {
+    margin: 2.5px 0;
+}
+
+.rn-desk-cover-title {
+    font-size: 2.5em;
+    color: white;
+    font-family: "Quicksand";
+    -webkit-font-smoothing: antialiased;
+    font-weight: 200;
+    text-align: center;
+    width: 100%;
+}
+
+.rn-desk-cover-info {
+    display: flex;
+    align-items: center;
+    color: white;
+    font-weight: 200;
+    font-family: "Lato";
+}
+
+.rn-desk-cover-info>span {
+    margin: 0 2.5px;
+}
+
+.rn-desk-cover-info>span:nth-child(even) {
+    opacity: .5;
+    font-size: .5rem;
+}
+
+.rn-desk-cards-mat {
+    width: 100%;
+    font-family: "Roboto";
+    border-collapse: collapse;
+    font-weight: 300;
+}
+
+.rn-desk-cards-mat table,
+.rn-desk-cards-mat th,
+.rn-desk-cards-mat td {
+    border: 1px solid rgba(0, 0, 0, .1);
+}
+
+.rn-desk-cards-mat tr {
+    height: 35px;
+    transition: .1s;
+}
+
+.rn-desk-cards-mat tr:not(:first-child) {
+    cursor: pointer;
+}
+
+.rn-desk-cards-mat tr:nth-child(odd):not(:first-child) {
+    background: rgba(0, 0, 0, .005);
+}
+
+.rn-desk-cards-mat tr.selected {
+    background: rgb(29, 161, 242) !important;
+    color: white;
+    border-color: transparent;
+}
+
+.rn-desk-cards-mat td {
+    text-align: center;
+}
+
+.rn-desk-cards {
+    height: auto;
+    width: 100%;
+    background: white;
+}
+
+.rn-desk-circlecon {
+    bottom: 17.5px;
+    right: 25px;
+    display: flex;
+    align-items: center;
+    flex-direction: column;
+    position: fixed !important;
+}
+
+.rn-desk-circlecon-item {
+    --size: 45px;
+
+    margin: 7.5px 0;
+    height: var(--size);
+    width: var(--size);
+    border-radius: 50%;
+    background: rgb(29, 161, 242);
+    font-size: 1.1em;
+    box-shadow: 0px 0px 10px -2.5px rgba(0, 0, 0, .25);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    transition: .15s;
+}
+
+.rn-desk-circlecon-item:first-child {
+    margin-top: 0;
+}
+
+.rn-desk-circlecon-item:last-child {
+    margin-bottom: 0;
+}
+
+.rn-desk-circlecon-item:hover {
+    background: rgb(65, 173, 243);
+}

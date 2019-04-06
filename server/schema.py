@@ -11,7 +11,7 @@ class UserType(GraphQL.ObjectType):
     avatar = GraphQL.String()
     #-
     desks = GraphQL.List(lambda: DeskType)
-    resolve_desks = lambda self, info: fetchDB('''SELECT * FROM Desks WHERE (creatorid = '%s')''' % (self.id))
+    resolve_desks = lambda self, info: fetchDB('''SELECT * FROM Desks WHERE (creatorid = '%s')''' % (self.id), 'M')
     #-
 # end
 
@@ -19,10 +19,13 @@ class DeskType(GraphQL.ObjectType):
     id = GraphQL.ID()
     creatorid = GraphQL.ID()
     ownersid = GraphQL.List(GraphQL.ID)
+    name = GraphQL.String()
     #-
     cards = GraphQL.List(lambda: CardType)
-    resolve_cards = lambda self, info: fetchDB('''SELECT * FROM Cards WHERE (deskid = '%s')''' % (self.id))
+    resolve_cards = lambda self, info: fetchDB('''SELECT * FROM Cards WHERE (deskid = '%s')''' % (self.id), 'M')
     #-
+    cardsInt = GraphQL.Int()
+    resolve_cardsInt = lambda self, info: fetchDB('''SELECT COUNT(*) FROM Cards WHERE (deskid = '%s')''' % (self.id), 'S').count
 # end
 
 class CardType(GraphQL.ObjectType):
@@ -105,17 +108,15 @@ class RootMutation(GraphQL.ObjectType):
     # end
 
     class CreateDeskMutation(GraphQL.Mutation):
-        class Arguments:
-            name = GraphQL.NonNull(GraphQL.String)
-        # end
-
         Output = DeskType
 
-        def mutate(self, info, name):
+        def mutate(self, info):
             uid = session.get('userid', None)
             
             if(uid):
-                return fetchDB('''INSERT INTO Desks (creatorid, ownersid) VALUES ('%s', '{"%s"}') RETURNING *''' % (uid, uid), 'S')
+                defname = 'Untitled desk'
+                
+                return fetchDB('''INSERT INTO Desks (creatorid, ownersid, name) VALUES ('%s', '{"%s"}', '%s') RETURNING *''' % (uid, uid, defname), 'S')
             else:
                 raise GraphQLError("No session")
             # end

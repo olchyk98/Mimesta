@@ -39,6 +39,7 @@ fetchDB("""
 fetchDB("""
     CREATE TABLE IF NOT EXISTS Cards (
         id bigserial primary key,
+        deskid bigserial NOT NULL,
         creatorid bigserial NOT NULL,
         fronttext text NOT NULL,
         backtext text NOT NULL,

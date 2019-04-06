@@ -3,27 +3,28 @@ import React, { Component } from 'react';
 import { Provider } from 'react-redux';
 import rstore from './rstore';
 
-import { Switch, Route } from 'react-router';
+import { Route, Switch } from 'react-router';
 import { BrowserRouter } from 'react-router-dom';
 
 // Pages
 import Dashboard from './pages/dashboard';
-import Authentication from './pages/authentication'
+import Authentication from './pages/authentication';
+import DeskP from './pages/deskpage';
 
 // Stuff
 import Nav from './pages/__forall__/nav';
 import links from './links';
 import { cookieControl } from './utils';
+import { TransitionGroup, CSSTransition } from "react-transition-group";
 
 // ...
-const NeedleRoute = ({ path, condition, component: Component, redirect: Redirect, ...settings }) => (
+const PrivateRoute = ({ path, condition, component: Component, redirect: Redirect, ...settings }) => (
 	<Route
 		path={ path }
 		{ ...settings }
-		component={ props => (condition) ? <Component { ...props } /> : <Redirect { ...props } to={ Redirect } /> }
+		render={ props => (condition) ? <Component { ...props } /> : <Redirect { ...props } to={ Redirect } /> }
 	/>
 );
-
 
 class App extends Component {
     constructor(props) {
@@ -37,31 +38,42 @@ class App extends Component {
             <Provider store={ rstore }>
                 <BrowserRouter>
                     <>
-                        {(this.clientID)?<Nav />:null}
-                        <Switch>
-                            <NeedleRoute
-                                path={ links["HOME_PAGE"].absolute }
-                                condition={ !!this.clientID }
-                                component={ Dashboard }
-                                redirect={ Authentication }
-                                exact
-                            />
-                            <NeedleRoute
-                                path={ links["AUTH_PAGE"].absolute }
-                                condition={ !this.clientID }
-                                component={ Authentication }
-                                redirect={ Dashboard }
-                                exact
-                            />
+                            {(this.clientID)?<Nav />:null}
                             <Route
-                                path={ links["LOGOUT_PAGE"].route }
-                                component={() => {
-                                    cookieControl.delete(["userid"])
-                                    return null;
-                                }}
-                                exact
+                                render={({ location }) => (
+                                    <TransitionGroup>
+                                        <CSSTransition
+                                            key={ location.key }
+                                            timeout={{ enter: 300, exit: 300 }}
+                                            classNames={ '__router-fade' }>
+                                            <Switch>
+                                                <PrivateRoute
+                                                    path={ links["DASHBOARD_PAGE"].route }
+                                                    condition={ !!this.clientID }
+                                                    component={ Dashboard }
+                                                    redirect={ Authentication }
+                                                    exact
+                                                />
+                                                <PrivateRoute
+                                                    path={ links["DESK_PAGE"].route }
+                                                    condition={ !!this.clientID }
+                                                    component={ DeskP }
+                                                    redirect={ Authentication }
+                                                    exact
+                                                />
+                                                <Route
+                                                    path={ links["LOGOUT_PAGE"].route }
+                                                    component={() => {
+                                                        cookieControl.delete(["userid"])
+                                                        return null;
+                                                    }}
+                                                    exact
+                                                />
+                                            </Switch>
+                                        </CSSTransition>
+                                    </TransitionGroup>
+                                )}
                             />
-                        </Switch>
                     </>
                 </BrowserRouter>
             </Provider>

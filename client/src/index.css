@@ -1,5 +1,6 @@
 :root {
     --navwidth: 60px;
+    --routetranst: 100ms;
 }
 
 html,
@@ -38,4 +39,22 @@ body {
 
 .rn.nonav {
     width: 100vw !important;
+}
+
+.__router-fade-enter {
+    opacity: 0.01;
+}
+
+.__router-fade-enter.__router-fade-enter-active {
+    opacity: 1;
+    transition: opacity var(--routetranst) ease-in;
+}
+
+.__router-fade-exit {
+    opacity: 1;
+}
+
+.__router-fade-exit.__router-fade-exit-active {
+    opacity: 0.01;
+    transition: opacity var(--routetranst) ease-in;
 }

@@ -1,11 +1,11 @@
 const links = {
-    "HOME_PAGE": {
+    "DASHBOARD_PAGE": {
         absolute: '/',
         route: '/'
     },
-    "AUTH_PAGE": {
-        absolute: '/go',
-        route: '/go'
+    "DESK_PAGE": {
+        absolute: '/desk',
+        route: '/desk/:id'
     },
     "LOGOUT_PAGE": {
         absolute: '/logout',

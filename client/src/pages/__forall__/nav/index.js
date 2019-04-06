@@ -12,10 +12,12 @@ import {
 } from '@fortawesome/free-solid-svg-icons';
 
 import { gql } from 'apollo-boost';
+import { withRouter } from 'react-router';
 
 import { cookieControl } from '../../../utils';
 import client from '../../../apollo';
 import api from '../../../api';
+import links from '../../../links';
 
 class Hero extends Component {
     constructor(props) {
@@ -64,36 +66,43 @@ class Hero extends Component {
                         {
                             icon: faColumns,
                             url: null,
-                            title: "Dashboard"
+                            title: "Dashboard",
+                            moveTo: links["DASHBOARD_PAGE"].absolute
                         },
                         {
                             icon: faBox,
                             url: null,
-                            title: "Archive"
+                            title: "Archive",
+                            moveTo: '/'
                         },
                         {
                             icon: faUserFriends,
                             url: null,
-                            title: "Friends"
+                            title: "Friends",
+                            moveTo: '/'
                         },
                         {
                             icon: faChartLine,
                             url: null,
-                            title: "Statistics"
+                            title: "Statistics",
+                            moveTo: '/'
                         },
                         {
                             icon: faCogs,
                             url: null,
-                            title: "Settings"
+                            title: "Settings",
+                            moveTo: '/'
                         },
                         {
                             icon: faDungeon,
                             url: null,
-                            title: "Logout"
+                            title: "Logout",
+                            moveTo: '/'
                         }
-                    ].map(({ icon, title }, index) => (
+                    ].map(({ icon, title, moveTo }, index) => (
                         <button
                             key={ index }
+                            onClick={ () => this.props.history.push(moveTo) }
                             className="gle-nav-item definp btn">
                             <FontAwesomeIcon
                                 icon={ icon }
@@ -107,4 +116,4 @@ class Hero extends Component {
     }
 }
 
-export default Hero;
+export default withRouter(Hero);

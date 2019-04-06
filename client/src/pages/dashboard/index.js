@@ -3,12 +3,18 @@ import PropTypes from 'prop-types';
 import './main.css';
 
 import { shortNumber } from '../../utils';
+import client from '../../apollo';
+import links from '../../links';
+
+import { gql } from 'apollo-boost';
 
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faCube, faPlus } from '@fortawesome/free-solid-svg-icons';
+import { faPlay, faPlus } from '@fortawesome/free-solid-svg-icons';
 import { faClock } from '@fortawesome/free-regular-svg-icons';
 
 import Desk from '../__forall__/desk';
+
+import placeholder from '../__forall__/placeholder.gif';
 
 class StatsCard extends PureComponent {
     render() {
@@ -27,7 +33,8 @@ class StatsCard extends PureComponent {
 StatsCard.propTypes = {
     title: PropTypes.string.isRequired,
     value: PropTypes.string.isRequired,
-    icon: PropTypes.object.isRequired
+    icon: PropTypes.object.isRequired,
+    index: PropTypes.number.isRequired
 }
 
 class Stats extends Component {
@@ -39,7 +46,7 @@ class Stats extends Component {
                     {
                         [
                             {
-                                icon: faCube,
+                                icon: faPlay,
                                 title: "Learned cards",
                                 value: "200"
                             },
@@ -56,6 +63,7 @@ class Stats extends Component {
                         ].map(({ icon, title, value }, index) => (
                             <StatsCard
                                 key={ index }
+                                index={ index }
                                 icon={ icon }
                                 title={ title }
                                 value={ shortNumber(value) }
@@ -68,19 +76,79 @@ class Stats extends Component {
     }
 }
 
-class Desks extends Component {
+class Desks extends PureComponent {
+    constructor(props) {
+        super(props);
+
+        this.creatingDesk = false;
+    }
+
+    createDesk = () => {
+        if(this.creatingDesk) return;
+
+        this.creatingDesk = true;
+
+        client.mutate({
+            mutation: gql`
+                mutation {
+                    createDesk {
+                        id
+                    }
+                }
+            `
+        }).then(({ data: { createDesk: a } }) => {
+            this.createDesk = false;
+
+            if(!a) return;
+
+            this.props.pushLink(`${ links["DESK_PAGE"].absolute }/${ a.id }`);
+        }).catch((err) => {
+            console.error(err);
+            this.creatingDesk = false;
+        });
+    }
+
     render() {
         return(
             <>
-                <h2 className="rn-dashboard-toptitle">Analytics Overview for this month</h2>
+                <h2 className="rn-dashboard-toptitle">Your desks</h2>
                 <section className="rn-dashboard-section rn-dashboard-desks">
-                    <Desk />
-                    <Desk />
-                    <Desk />
-                    <Desk />
-                    <Desk />
-                    <Desk />
-                    <Desk />
+                    {
+                        (!this.props.isLoading) ? (
+                            <>
+                                {
+                                    this.props.desks.map(({ id, name, cardsInt }) => (
+                                        <Desk
+                                            key={ id }
+                                            id={ id }
+                                            name={ name }
+                                            cards={ cardsInt }
+                                        />
+                                    ))
+                                }
+                                <button
+                                    className="rn-dashboard-desks-additem definp"
+                                    onClick={ this.createDesk }>
+                                    <FontAwesomeIcon icon={ faPlus } />
+                                </button>
+                            </>
+                        ) : (
+                            (() => {
+                                let a = [];
+
+                                for(let ma = 0; ma < 2; ma++) a.push(
+                                    <img
+                                        key={ ma }
+                                        src={ placeholder }
+                                        alt="placeholder"
+                                        className="rn-dashboard-desks-placeholderit"
+                                    />
+                                );
+                                
+                                return a;
+                            })()
+                        )
+                    }
                 </section>
             </>
         );
@@ -88,11 +156,50 @@ class Desks extends Component {
 }
 
 class Hero extends Component {
+    constructor(props) {
+        super(props);
+
+        this.state = {
+            desks: false
+        }
+    }
+
+    componentDidMount() {
+        this.fetchData();
+    }
+
+    fetchData = () => {
+        client.query({
+            query: gql`
+                query {
+                    user {
+                        id,
+                        desks {
+                            id,
+                            name,
+                            cardsInt
+                        }
+                    }
+                }
+            `
+        }).then(({ data: { user: a } }) => {
+            if(!a) return;
+
+            this.setState(() => ({
+                desks: a.desks
+            }));
+        }).catch(console.error);
+    }
+
     render() {
         return(
             <div className="rn rn-dashboard">
                 <Stats />
-                <Desks />
+                <Desks
+                    desks={ this.state.desks }
+                    isLoading={ this.state.desks === false }
+                    pushLink={ this.props.history.push }
+                />
             </div>
         );
     }

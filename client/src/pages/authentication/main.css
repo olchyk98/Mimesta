@@ -211,3 +211,26 @@
 .rn-authentication-forms-stagetrans>.link {
     font-size: .8rem;
 }
+
+.rn-dashboard-desks-placeholderit,
+.rn-dashboard-desks-additem {
+    height:var(--gpackh);
+    width:var(--gpackw);
+    border-radius:2.5px;
+}
+
+.rn-dashboard-desks-additem {
+    background:white;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    opacity:.75;
+    cursor:pointer;
+    font-size:2em;
+    color:rgba(0, 0, 0, .75);
+    transition:.1s;
+}
+
+.rn-dashboard-desks-additem:hover {
+    opacity:1;
+}
