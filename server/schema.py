@@ -159,10 +159,38 @@ class RootMutation(GraphQL.ObjectType):
         # end
     # end
 
+    class AddDeskCardMutation(GraphQL.Mutation):
+        class Arguments:
+            deskID = GraphQL.NonNull(GraphQL.ID)
+            front = GraphQL.NonNull(GraphQL.String)
+            back = GraphQL.NonNull(GraphQL.String)
+        # end
+
+        Output = CardType
+
+        def mutate(self, info, deskID, front, back):
+            # Check if user has a session
+            uid = session.get('userid', None)
+            if(not uid): raise GraphQLError("No session")
+
+            # Check if user has a permission to modify this desk
+            if(not fetchDB('''SELECT id FROM Desks WHERE id = '%s' AND '{"%s"}' @> ownersid''' % (deskID, uid), 'S')):
+                return None
+            # end
+            
+            # Update desk
+            return fetchDB('''
+                INSERT INTO Cards (deskid, creatorid, fronttext, backtext, showtimes) VALUES
+                ('%s', '%s', '%s', '%s', %s) RETURNING *
+            ''' % (deskID, uid, front, back, 0), 'S')
+        # end
+    # end
+
     registerUser = RegisterUserMutation.Field()
     loginUser = LoginUserMutation.Field()
     createDesk = CreateDeskMutation.Field()
     updateDeskName = UpdateDeskNameMutation.Field()
+    addDeskCard = AddDeskCardMutation.Field()
 # end
 
 schema = GraphQL.Schema(query = RootQuery, mutation = RootMutation, auto_camelcase = False)

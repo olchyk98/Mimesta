@@ -77,7 +77,7 @@ class Cards extends PureComponent {
                                     <td>{ fronttext }</td>
                                     <td>{ backtext }</td>
                                     <td>{ addtime }</td>
-                                    <td>{ updatedtime }</td>
+                                    <td>{ updatedtime || "wasn't updated yet" }</td>
                                     <td>{ showtimes }</td>
                                     <td>{ crname }</td>
                                 </tr>
@@ -122,7 +122,7 @@ class AddCardModal extends Component {
         }
 
         // Reset state when modal is activating
-        if(!pprops.visible && this.props.visible) this.reset();
+        if(!pprops.activeStatus && this.props.activeStatus) this.reset();
     }
 
     reset = () => {
@@ -135,7 +135,7 @@ class AddCardModal extends Component {
             <>
                 <div onClick={ () => { this.props.onClose(); } } className={constructClassName({
                     "rn-desk-addcardmod_bg": true,
-                    "active": this.props.visible
+                    "active": this.props.activeStatus
                 })} />
                 <div className="rn-desk-addcardmod">
                     <div className="rn-desk-addcardmod-controls">
@@ -196,7 +196,8 @@ class Hero extends Component {
             desk: null,
             selectedCard: null,
             addingCard: false,
-            addCardProcessing: false
+            cardModifyData: null,
+            cardProcessing: false
         }
     }
 
@@ -271,26 +272,78 @@ class Hero extends Component {
     }
 
     addDeskCard = ({ front, back }) => {
-        if(this.state.addCardProcessing) return;
-
-        this.setState(() => ({ addCardProcessing: true }));
+        if(this.state.cardProcessing) return;
+        this.setState(() => ({ cardProcessing: true }));
 
         client.mutate({
             mutation: gql`
-            
-            `
-        }).then(() => {
+                mutation($id: ID!, $front: String!, $back: String!) {
+                    addDeskCard(deskID: $id, front: $front, back: $back) {
+                        id,
+                        creator {
+                            id,
+                            name
+                        },
+                        fronttext,
+                        backtext,
+                        addtime,
+                        updatetime,
+                        showtimes
+                    }
+                }
+            `,
+            variables: {
+                id: this.state.desk.id,
+                front, back
+            }
+        }).then(({ data: { addDeskCard: a } }) => {
+            this.setState(() => ({ cardProcessing: false }));
+            if(!a) return null;
 
+            this.setState(({ desk, desk: { cards } }) => ({
+                desk: {
+                    ...desk,
+                    cards: [
+                        a,
+                        ...cards
+                    ]
+                }
+            }));
         }).catch(console.error);
+    }
+
+    modifyDeskCard = ({ front, back }) => {
+        if(this.state.cardProcessing) return;
+        this.setState(() => ({ cardProcessing: true }));
+
+        client.mutate({
+            mutation: gql`
+                mutation($cardID: ID!) {
+
+                }
+            `
+        })
     }
     
     render() {
         return(
             <>
                 <AddCardModal
-                    visible={ this.state.addingCard }
-                    submitCard={ this.addDeskCard }
-                    onClose={ () => this.setState({ addingCard: false }) }
+                    activeStatus={ this.state.addingCard }
+                    submitCard={() => {
+                        const a = this.state.addingCard;
+
+                        switch(a) {
+                            case 'ADD':
+                                this.addDeskCard();
+                            break;
+                            case 'MODIFY':
+                                this.modifyDeskCard();
+                            break;
+                            default:break;
+                        }
+                    }}
+                    onClose={ () => this.setState({ addingCard: false, cardModifyData: null }) }
                 />
                 <div className="rn rn-desk">
                     {
@@ -315,14 +368,21 @@ class Hero extends Component {
                                             {
                                                 id: 1,
                                                 icon: faPlus,
-                                                onClick: () => this.setState({ addingCard: true }),
-                                                loading: this.state.addCardProcessing
+                                                onClick: () => this.setState({ addingCard: "ADD" }),
+                                                loading: this.state.cardProcessing
                                             },
                                             {
                                                 id: 2,
                                                 icon: faPen,
                                                 noRender: this.state.selectedCard === null,
-                                                onClick: () => null
+                                                onClick: () => {
+                                                    this.setState(() => ({
+                                                        addingCard: "MODIFY",
+                                                        cardModifyData: this.state.desk.cards.find(io => (
+                                                            io.id === this.state.selectedCard
+                                                        ))
+                                                    }))
+                                                }
                                             },
                                             {
                                                 id: 3,
