@@ -4,6 +4,10 @@ import './main.css';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPlay, faPlus, faPen } from '@fortawesome/free-solid-svg-icons';
 
+import client from '../../apollo';
+
+import { gql } from 'apollo-boost';
+
 class Cover extends PureComponent {
     render() {
         return(
@@ -48,7 +52,7 @@ class Cards extends PureComponent {
                             <th>Played times</th>
                             <th>Created by</th>
                         </tr>
-                        {
+                        {/* {
                             this.props.cards.map(({ front, back, added, updated, played, created }, index) => (
                                 <tr
                                     key={ index }
@@ -62,7 +66,7 @@ class Cards extends PureComponent {
                                     <td>{ created }</td>
                                 </tr>
                             ))
-                        }
+                        } */}
                     </tbody>
                 </table>
             </section>
@@ -85,9 +89,30 @@ class Hero extends Component {
         });
 
         this.state = {
-            cards: this.cards,
+            desk: null,
             selectedCard: null
         }
+    }
+
+    componentDidMount() {
+        this.fetchDesk(this.props.match.params.id);
+    }
+
+    fetchDesk = id => {
+        client.query({
+            query: gql`
+                query($id: ID!) {
+                    getDesk(id: $id) {
+                        id,
+                        name,
+                        cardsInt
+                    }
+                }
+            `,
+            variables: { id }
+        }).then(({ data: { getDesk: a } }) => {
+            console.log(a)
+        }).catch(console.error);
     }
 
     selectCard = id => this.setState({ selectedCard: id })

@@ -60,6 +60,16 @@ class RootQuery(GraphQL.ObjectType):
             return None
         # end
     # end
+    getDesk = GraphQL.Field(DeskType, id = GraphQL.NonNull(GraphQL.ID))
+    def resolve_getDesk(self, info, id):
+        uid = session.get('userid', None)
+
+        if(uid):
+            return fetchDB('''SELECT * FROM Desks WHERE id = '%s' AND ownersid @> ARRAY['%s']::varchar[]''' % (id, uid))
+        else:
+            return None
+        # end
+    # end
 # end
 
 class RootMutation(GraphQL.ObjectType):

@@ -19,7 +19,9 @@ import placeholder from '../__forall__/placeholder.gif';
 class StatsCard extends PureComponent {
     render() {
         return(
-            <article className="rn-dashboard-stats-item">
+            <article className="rn-dashboard-stats-item" style={{
+                animationDelay: this.props.index * 0.25 + 's'
+            }}>
                 <div className="rn-dashboard-stats-item-icon">
                     <FontAwesomeIcon icon={ this.props.icon } />
                 </div>
