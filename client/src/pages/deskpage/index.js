@@ -2,11 +2,11 @@ import React, { Component, PureComponent } from 'react';
 import './main.css';
 
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faPlay, faPlus, faPen, faCheck, faSyncAlt } from '@fortawesome/free-solid-svg-icons';
+import { faPlay, faPlus, faPen, faCheck, faSyncAlt, faTrash, faBurn } from '@fortawesome/free-solid-svg-icons';
 
 import client from '../../apollo';
 import links from '../../links';
-import { constructClassName } from '../../utils';
+import { cookieControl, constructClassName, convertTime } from '../../utils';
 
 import { gql } from 'apollo-boost';
 
@@ -63,20 +63,20 @@ class Cards extends PureComponent {
                             <th>Front side</th>
                             <th>Back side</th>
                             <th>Added</th>
-                            <th>Updated</th>
+                            <th>Last update</th>
                             <th>Played times</th>
                             <th>Created by</th>
                         </tr>
                         {
-                            this.props.cards.map(({ id, fronttext, backtext, updatedtime, showtimes, addtime, creator: { name: crname } }) => (
+                            this.props.cards.map(({ id, fronttext, backtext, updatetime, showtimes, addtime, creator: { name: crname } }) => (
                                 <tr
                                     key={ id }
                                     className={ (this.props.selectedCard !== id) ? "" : "selected" }
                                     onClick={ () => this.props.selectCard(id) }>
                                     <td>{ fronttext }</td>
                                     <td>{ backtext }</td>
-                                    <td>{ addtime }</td>
-                                    <td>{ updatedtime || "wasn't updated yet" }</td>
+                                    <td>{ convertTime(addtime, 1) }</td>
+                                    <td>{ (updatetime !== addtime) ? convertTime(updatetime, 1) : "wasn't updated yet" }</td>
                                     <td>{ showtimes }</td>
                                     <td>{ crname }</td>
                                 </tr>
@@ -176,6 +176,7 @@ class AddCardModal extends Component {
                                 suppressContentEditableWarning={ true }
                                 contentEditable={ true }
                                 placeholder="Start typing..."
+                                onInput={ () => this.forceUpdate() }
                                 className="definp rn-desk-addcardmod-card-target"
                                 ref={ ref => this.sidesRef.front = ref }
                             >{""}</h1>
@@ -185,6 +186,7 @@ class AddCardModal extends Component {
                                 suppressContentEditableWarning={ true }
                                 contentEditable={ true }
                                 placeholder="Start typing..."
+                                onInput={ () => this.forceUpdate() } // we need it to check all fields are filledw (componentDidUpdate)
                                 className="definp rn-desk-addcardmod-card-target"
                                 ref={ ref => this.sidesRef.back = ref }
                             >{""}</h1>
@@ -205,8 +207,11 @@ class Hero extends Component {
             selectedCard: null,
             addingCard: false,
             cardModifyData: null,
-            cardProcessing: false
+            cardProcessing: false,
+            cardDeleting: false
         }
+
+        this.clientID = JSON.parse(cookieControl.get('userdata')).id;
 
         this.cardQuery = `
             id,
@@ -318,7 +323,7 @@ class Hero extends Component {
     }
 
     modifyDeskCard = ({ front, back }) => {
-        if(this.state.cardProcessing) return;
+        if(this.state.cardProcessing || !this.state.selectedCard) return;
         this.setState(() => ({ cardProcessing: true }));
 
         client.mutate({
@@ -351,6 +356,42 @@ class Hero extends Component {
         }).catch((err) => {
             console.error(err);
             this.setState(() => ({ cardProcessing: false }));
+        });
+    }
+
+    deleteSelectedCard = () => {
+        if(this.state.cardDeleting || !this.state.selectedCard) return;
+        this.setState(() => ({ cardDeleting: true }));
+
+        client.mutate({
+            mutation: gql`
+                mutation($id: ID!, $deskID: ID!) {
+                    deleteCard(id: $id, deskID: $deskID) {
+                        id
+                    }
+                }
+            `,
+            variables: {
+                id: this.state.selectedCard,
+                deskID: this.state.desk.id
+            }
+        }).then(({ data: { deleteCard: a } }) => {
+            this.setState(() => ({ cardDeleting: true }));
+            if(!a) return null;
+
+            const b = Array.from(this.state.desk.cards);
+            b.splice(b.findIndex(io => io.id === a.id), 1);
+            this.selectCard(null);
+
+            this.setState(({ desk }) => ({
+                desk: {
+                    ...desk,
+                    cards: b
+                }
+            }));
+        }).catch((err) => {
+            console.error(err);
+            this.setState(() => ({ cardDeleting: false }));
         });
     }
     
@@ -395,18 +436,16 @@ class Hero extends Component {
                                     {
                                         [
                                             {
-                                                id: 1,
                                                 icon: faPlus,
                                                 onClick: () => this.setState({ addingCard: "ADD" }),
+                                                info: "Add a new card",
                                                 loading: this.state.cardProcessing
                                             },
                                             {
-                                                id: 2,
                                                 icon: faPen,
+                                                info: "Edit selected card",
                                                 noRender: this.state.selectedCard === null,
                                                 onClick: (e) => {
-                                                    e.preventDefault(); // Do not blur table
-
                                                     const a = this.state.desk.cards.find(io => (
                                                         io.id === this.state.selectedCard
                                                     ));
@@ -421,20 +460,39 @@ class Hero extends Component {
                                                 }
                                             },
                                             {
-                                                id: 3,
+                                                icon: faTrash,
+                                                info: "Delete selected card",
+                                                noRender: this.state.selectedCard === null,
+                                                classNames: "delete-act",
+                                                onClick: this.deleteSelectedCard,
+                                                loading: this.state.cardDeleting
+                                            },
+                                            {
                                                 icon: faPlay,
+                                                info: "Play desk",
+                                                onClick: () => null
+                                            },
+                                            {
+                                                icon: faBurn,
+                                                info: "Destroy this desk",
+                                                classNames: "delete-act",
+                                                noRender: this.clientID !== this.state.desk.creator.id,
                                                 onClick: () => null
                                             }
-                                        ].map(({ id, icon, onClick, noRender, loading }) => (!noRender) ? (
+                                        ].map(({ icon, onClick, noRender, loading, classNames, info }, index) => (!noRender) ? (
                                             <button
-                                                key={ id }
+                                                key={ index }
                                                 className={constructClassName({
                                                     "rn-desk-circlecon-item definp": true,
-                                                    "loading": loading
+                                                    "loading": loading,
+                                                    [classNames]: !!classNames
                                                 })}
                                                 onClick={ onClick }
                                                 disabled={ loading || false }>
                                                 <FontAwesomeIcon icon={ icon } />
+                                                <span className="rn-desk-circlecon-item-info">
+                                                    { info }
+                                                </span>
                                             </button>
                                         ) : null)
                                     }

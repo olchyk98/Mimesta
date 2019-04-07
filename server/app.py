@@ -43,8 +43,8 @@ fetchDB("""
         creatorid bigserial NOT NULL,
         fronttext text NOT NULL,
         backtext text NOT NULL,
-        addtime DATE NOT NULL DEFAULT CURRENT_DATE,
-        updatetime DATE NOT NULL DEFAULT CURRENT_DATE,
+        addtime timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        updatetime timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
         showtimes INTEGER NOT NULL
     );
 """, False)

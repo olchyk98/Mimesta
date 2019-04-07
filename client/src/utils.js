@@ -34,8 +34,47 @@ function constructClassName(state) {
 	return Object.entries(state).filter(p => p[1]).map(p => p[0]).join(' ');
 }
 
-function convertTime(type) { // 1553017480428 => 19 March, 2019 18:44
-	// TODO
+// shortLevel - 1(full date), 2(time), 3(seconds to fulldate)
+function convertTime(time, shortLevel) { // (%"?")1553017480428 => 19 March, 2019 18:44
+	// Detect time format (number, string)
+	let a = new Date(time);
+	
+	if(parseInt(time).toString() === time) { // string format
+		a = new Date(parseInt(time))
+	}
+
+	const mn = [
+		"Jan",
+		"Feb",
+		"March",
+		"Apr",
+		"May", 
+		"June",
+		"July",
+		"Aug",
+		"Sep",
+		"Oct",
+		"Nov",
+		"Dec"
+	],
+		fk = a => (a.toString().length !== 1) ? a : "0" + a  // *förkortning (???)
+
+	let b = null; // return
+
+	switch(shortLevel) {
+		case 1: // full date // 19 March, 2019 18:44
+			b = `${ fk(a.getDate()) } ${ mn[ a.getMonth() ] }, ${ a.getFullYear() } ${ fk(a.getHours()) }:${ fk(a.getMinutes()) }`;
+		break;
+		case 2: // hours:minutes
+			// TODO
+		break;
+		case 3: // seconds to fulldate
+			// TODO
+		break;
+		default:break;
+	}
+
+	return b;
 }
 
 function shortNumber(a) { // 4913 => 4.9k
