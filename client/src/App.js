@@ -16,6 +16,7 @@ import Nav from './pages/__forall__/nav';
 import links from './links';
 import { cookieControl } from './utils';
 import { TransitionGroup, CSSTransition } from "react-transition-group";
+import DialogModal from './pages/__forall__/dialog.modal';
 
 // ...
 const PrivateRoute = ({ path, condition, component: Component, redirect: Redirect, ...settings }) => (
@@ -39,6 +40,7 @@ class App extends Component {
                 <BrowserRouter>
                     <>
                             {(this.clientID)?<Nav />:null}
+                            <DialogModal />
                             <Route
                                 render={({ location }) => (
                                     <TransitionGroup>

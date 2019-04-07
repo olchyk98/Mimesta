@@ -2,13 +2,24 @@ import React, { Component, PureComponent } from 'react';
 import './main.css';
 
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faPlay, faPlus, faPen, faCheck, faSyncAlt, faTrash, faBurn } from '@fortawesome/free-solid-svg-icons';
+import {
+    faPlay,
+    faPlus,
+    faPen,
+    faCheck, 
+    faSyncAlt,
+    faTrash,
+    faBurn,
+    faSkullCrossbones,
+    faBomb
+} from '@fortawesome/free-solid-svg-icons';
 
 import client from '../../apollo';
 import links from '../../links';
 import { cookieControl, constructClassName, convertTime } from '../../utils';
 
 import { gql } from 'apollo-boost';
+import { connect } from 'react-redux';
 
 import LoadIcon from '../__forall__/loadicon';
 
@@ -208,7 +219,8 @@ class Hero extends Component {
             addingCard: false,
             cardModifyData: null,
             cardProcessing: false,
-            cardDeleting: false
+            cardDeleting: false,
+            deletingDesk: false
         }
 
         this.clientID = JSON.parse(cookieControl.get('userdata')).id;
@@ -376,7 +388,7 @@ class Hero extends Component {
                 deskID: this.state.desk.id
             }
         }).then(({ data: { deleteCard: a } }) => {
-            this.setState(() => ({ cardDeleting: true }));
+            this.setState(() => ({ cardDeleting: false }));
             if(!a) return null;
 
             const b = Array.from(this.state.desk.cards);
@@ -392,6 +404,47 @@ class Hero extends Component {
         }).catch((err) => {
             console.error(err);
             this.setState(() => ({ cardDeleting: false }));
+        });
+    }
+
+    deleteDesk = () => {
+        if(this.state.deletingDesk || !this.state.desk || this.clientID !== this.state.desk.creator.id) return;
+
+        this.setState(() => ({ deletingDesk: true }));
+
+        client.mutate({
+            mutation: gql`
+                mutation($id: ID!) {
+                    deleteDesk(id: $id) {
+                        id
+                    }
+                }
+            `,
+            variables: {
+                id: this.state.desk.id
+            }
+        }).then(({ data: { deleteDesk: a } }) => {
+            this.setState(() => ({ deletingDesk: false }));
+            if(!a) {
+                this.props.goDialog({
+                    iconStyle: "error",
+                    icon: faBomb,
+                    text: "Error. We couldn't delete this desk. Please, try again.",
+                    buttons: [
+                        {
+                            text: "Continue",
+                            onClick: () => null // modal closes automatically
+                        }
+                    ]
+                });
+
+                return;
+            }
+
+            this.props.history.push(links["DASHBOARD_PAGE"].absolute);
+        }).catch((err) => {
+            console.error(err);
+            this.setState(() => ({ deletingDesk: false }));
         });
     }
     
@@ -477,7 +530,26 @@ class Hero extends Component {
                                                 info: "Destroy this desk",
                                                 classNames: "delete-act",
                                                 noRender: this.clientID !== this.state.desk.creator.id,
-                                                onClick: () => null
+                                                loading: this.state.deletingDesk,
+                                                onClick: () => {
+                                                    this.props.goDialog({
+                                                        iconStyle: "warning",
+                                                        icon: faSkullCrossbones,
+                                                        text: "Are you sure that you want to terminate this desk?",
+                                                        buttons: [
+                                                            {
+                                                                color: 'safe',
+                                                                text: "Cancel",
+                                                                onClick: () => null
+                                                            },
+                                                            {
+                                                                color: 'danger',
+                                                                text: "Continue",
+                                                                onClick: this.deleteDesk
+                                                            }
+                                                        ]
+                                                    });
+                                                }
                                             }
                                         ].map(({ icon, onClick, noRender, loading, classNames, info }, index) => (!noRender) ? (
                                             <button
@@ -512,4 +584,13 @@ class Hero extends Component {
     }
 }
 
-export default Hero;
+const mapStateToProps = () => ({});
+
+const mapActionsToProps = {
+    goDialog: payload => ({ type: 'SHOW_DIALOG_MODAL', payload })
+}
+
+export default connect(
+    mapStateToProps,
+    mapActionsToProps
+)(Hero);

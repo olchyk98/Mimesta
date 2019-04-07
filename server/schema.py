@@ -248,6 +248,23 @@ class RootMutation(GraphQL.ObjectType):
         # end
     # end
 
+    class DeleteDeskMutation(GraphQL.Mutation):
+        class Arguments:
+            id = GraphQL.NonNull(GraphQL.ID)
+        # end
+
+        Output = DeskType
+
+        def mutate(self, info, id):
+            # Check if user has a session
+            uid = session.get('userid', None)
+            if(not uid): raise GraphQLError("No session")
+
+            # Delete desk
+            return fetchDB('''DELETE FROM Desks WHERE id = $$%s$$ AND creatorid = $$%s$$ RETURNING *''' % (id, uid), 'S')
+        # end
+    # end
+
     registerUser = RegisterUserMutation.Field()
     loginUser = LoginUserMutation.Field()
     createDesk = CreateDeskMutation.Field()
@@ -255,6 +272,7 @@ class RootMutation(GraphQL.ObjectType):
     addDeskCard = AddDeskCardMutation.Field()
     updateCardContent = UpdateCardContentMutation.Field()
     deleteCard = DeleteCardMutation.Field()
+    deleteDesk = DeleteDeskMutation.Field()
 # end
 
 schema = GraphQL.Schema(query = RootQuery, mutation = RootMutation, auto_camelcase = False)

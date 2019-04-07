@@ -17,7 +17,17 @@ const client = new ApolloClient({
             uri: api.api,
             credentials: 'include'
         })
-    ])
+    ]),
+    defaultOptions: {
+        watchQuery: {
+          fetchPolicy: 'network-only',
+          errorPolicy: 'ignore',
+        },
+        query: {
+          fetchPolicy: 'network-only',
+          errorPolicy: 'all',
+        }
+    }
 });
 
 export default client;

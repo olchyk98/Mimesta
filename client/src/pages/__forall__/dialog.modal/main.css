@@ -1,0 +1,125 @@
+.gle-dialogmod_bg {
+    height:100vh;
+    width:100vw;
+    position:fixed;
+    top:0;
+    left:0;
+    z-index:1999;
+    background:rgba(0, 0, 0, .35);    
+}
+
+.gle-dialogmod {
+    --padding:20px;
+    --scale:.75;
+
+    padding:var(--padding);
+    position:fixed;
+    z-index:2000;
+    top:50%;
+    left:50%;
+    margin-right:50%;
+    border-radius:5px;
+    background:white;
+    height:auto;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    width:calc(400px - var(--padding) * 2);
+    max-width:calc(100vw - var(--padding) * 2 - 15px);
+    transform:translate(-50%, -50%) scale(var(--scale));
+}
+
+.gle-dialogmod_bg,
+.gle-dialogmod {
+    --trans:.25s;
+
+    opacity:0;
+    visibility:hidden;
+    transition:all var(--trans), visibility var(--trans);
+}
+
+.gle-dialogmod_bg.active,
+.gle-dialogmod_bg.active ~ .gle-dialogmod {
+    opacity:1;
+    visibility:visible;
+    transition:all var(--trans), visibility 0s;
+}
+
+.gle-dialogmod_bg.active ~ .gle-dialogmod {
+    --scale:1;
+}
+
+.gle-dialogmod-icon {
+    --size:55px;
+
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    height:var(--size);
+    width:var(--size);
+    border-radius:50%;
+    font-size:1.5rem;
+    background:rgba(0, 0, 0, .15);
+}
+
+.gle-dialogmod-icon.warning {
+    background:rgba(238, 244, 65, .25);
+    color:rgba(0, 0, 0, .85);
+}
+
+.gle-dialogmod-icon.error {
+    background:rgba(255, 0, 0, .65);
+    color:white;
+}
+
+.gle-dialogmod-title {
+    text-align:center;
+    font-family:"Lato";
+    font-weight:500;
+    font-size:1.75rem;
+    margin-top:7.5px;
+    margin-bottom:17.5px;
+}
+
+.gle-dialogmod-icon-controls {
+    display:flex;
+    height:auto;
+    width:100%;
+    flex-wrap:wrap;
+    justify-content:center;
+}
+
+.gle-dialogmod-icon-controls-item {
+    padding:0 30px;
+    border-radius:2.5px;
+    font-size:.95rem;
+    color:white;
+    box-shadow:0px 0px 7.5px -2.5px rgba(0, 0, 0, .15);
+    background:rgb(255, 0, 105);
+    font-weight:200;
+    font-family:"Quicksand";
+    text-transform:uppercase;
+    height:40px;
+    cursor:pointer;
+    margin:7.5px;
+    transition:.15s;
+}
+
+.gle-dialogmod-icon-controls-item.safe {
+    background:rgb(9, 239, 120);
+}
+
+.gle-dialogmod-icon-controls-item.danger {
+    background:rgb(255, 0, 105);
+}
+
+.gle-dialogmod-icon-controls-item:hover {
+    box-shadow:0px 0px 15px -2.5px rgba(0, 0, 0, .15);
+    transform:scale(1.05);
+}
+
+.gle-dialogmod-icon-controls-item:active {
+    transition:75ms;
+    box-shadow:0px 0px 15px -7.5px rgba(0, 0, 0, .15);
+    transform:scale(1);   
+}
