@@ -95,12 +95,12 @@ class RootQuery(GraphQL.ObjectType):
             return None
         # end
     # end
-    getDesk = GraphQL.Field(DeskType, id = GraphQL.NonNull(GraphQL.ID))
-    def resolve_getDesk(self, info, id):
+    getDesk = GraphQL.Field(DeskType, id = GraphQL.NonNull(GraphQL.ID), shuffleLimit = GraphQL.Int())
+    def resolve_getDesk(self, info, id, shuffleLimit = 'ALL'):
         uid = session.get('userid', None)
 
         if(uid):
-            return fetchDB('''SELECT * FROM Desks WHERE id = $$%s$$ AND $${"%s"}$$ @> ownersid''' % (id, uid), 'S')
+            return fetchDB('''SELECT * FROM Desks WHERE id = $$%s$$ AND $${"%s"}$$ @> ownersid ORDER BY RANDOM() LIMIT %s''' % (id, uid, shuffleLimit), 'S')
         else:
             return None
         # end

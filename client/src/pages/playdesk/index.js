@@ -55,7 +55,7 @@ class Controls extends Component {
         return(
             <section className="rn-playdesk-controls">
                 {
-                    ((true) ? ( // visible
+                    ((this.props.showAnswer) ? (
                         [
                             {
                                 icon: faFlushed,
@@ -101,7 +101,8 @@ class Hero extends Component {
         super(props);
 
         this.state = {
-            isLoading: true
+            isLoading: true,
+            showAnswer: false
         }
     }
 
@@ -126,24 +127,29 @@ class Hero extends Component {
 
         client.query({
             query: gql`
-                query($deskID: ID!) {
-                    getDesk(id: $deskID) {
+                query($deskID: ID!, $shuffleLimit: Int) {
+                    getDesk(id: $deskID, shuffleLimit: $shuffleLimit) {
                         id,
                         cards {
-                            
+                            id,
+                            fronttext,
+                            backtext
                         }
                     }
                 }
             `,
             variables: {
-                deskID
+                deskID,
+                shuffleLimit: 50
             }
-        }).then(({ data: { playDesk: a } }) => {
+        }).then(({ data: { getDesk: a } }) => {
             if(!a) {
                 this.props.history.push(links["DASHBOARD_PAGE"].absolute);
                 castError();
                 return;
             }
+
+            this.setState(() => ({ isLoading: false }));
         }).catch((err) => {
             this.props.history.push(links["DASHBOARD_PAGE"].absolute);
             castError();
@@ -170,7 +176,9 @@ class Hero extends Component {
                             <Display />
                             <div className="rn-playdesk-container center">
                                 <span className="rn-playdesk-controls_title">Did you know that?</span>
-                                <Controls />
+                                <Controls
+                                    showAnswer={ true }
+                                />
                             </div>
                         </>
                     ) : (

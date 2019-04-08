@@ -523,7 +523,7 @@ class Hero extends Component {
                                             {
                                                 icon: faPlay,
                                                 info: "Play desk",
-                                                onClick: () => null
+                                                onClick: () => this.props.history.push(`${ links["PLAY_DESK_PAGE"].absolute }/${ this.state.desk.id }`)
                                             },
                                             {
                                                 icon: faBurn,
