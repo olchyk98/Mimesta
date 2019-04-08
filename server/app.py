@@ -48,6 +48,25 @@ fetchDB("""
         showtimes INTEGER NOT NULL
     );
 """, False)
+    # DeskGames
+
+'''
+    losedCards - repeated cards
+    clearCards - cards haven't been repeated
+    maxStrike - number of clearCards in row
+'''
+fetchDB("""
+    CREATE TABLE IF NOT EXISTS DeskGames (
+        id bigserial primary key,
+        minutes int NOT NULL,
+        playerid bigserial NOT NULL,
+        losedCards int NOT NULL,
+        clearCards int NOT NULL,
+        date timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        maxStrike int NOT NULL,
+        deskid bigserial NOT NULL
+    )
+""", False)
 
 # Serve GraphQL API
 app.add_url_rule('/', view_func = GraphQLView.as_view(

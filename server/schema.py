@@ -63,6 +63,17 @@ class CardType(GraphQL.ObjectType):
     resolve_creator = lambda self, info: fetchDB('''SELECT * FROM Users WHERE id = $$%s$$ ''' % (self.creatorid), 'S')
 # end
 
+class DeskGameType(GraphQL.ObjectType):
+    id = GraphQL.ID()
+    minutes = GraphQL.Int()
+    playerid = GraphQL.Int()
+    losedCards = GraphQL.Int()
+    clearCards = GraphQL.Int()
+    date = GraphQL.DateTime()
+    maxStrike = GraphQL.Int()
+    deskid = GraphQL.ID
+# end
+
 class RootQuery(GraphQL.ObjectType):
     # --- DEVELOPMENT ---
     desks = GraphQL.List(DeskType)
@@ -244,7 +255,7 @@ class RootMutation(GraphQL.ObjectType):
             # end
 
             # Delete card
-            return fetchDB('''DELETE FROM Cards WHERE id = $$%s$$ AND deskid = $$%s$$ RETURNING *''' % (uid, deskID), 'S')
+            return fetchDB('''DELETE FROM Cards WHERE id = $$%s$$ AND deskid = $$%s$$ RETURNING *''' % (id, deskID), 'S')
         # end
     # end
 
@@ -265,6 +276,36 @@ class RootMutation(GraphQL.ObjectType):
         # end
     # end
 
+    class PlayDeskMutation(GraphQL.Mutation):
+        class Arguments:
+            deskID = GraphQL.NonNull(GraphQL.ID)
+            minutes = GraphQL.NonNull(GraphQL.Int)
+            losedCards = GraphQL.NonNull(GraphQL.Int)
+            clearCards = GraphQL.NonNull(GraphQL.Int)
+            maxStrike = GraphQL.NonNull(GraphQL.Int)
+        # end
+
+        Output = DeskGameType
+
+        def mutate(self, info, deskID, minuers, losedCards, clearCards, maxStrike):
+            # Check if user has a session
+            uid = session.get('userid', None)
+            if(not uid): raise GraphQLError("No session")
+
+            # Check if user is a member of this desk
+            if(not fetchDB('''SELECT id FROM Desks WHERE id = $$%s$$ AND $${"%s"}$$ @> ownersid''' % (deskID, uid), 'S')):
+                return None
+            # end
+
+            # Create a game session
+            return fetchDB('''
+                INSERT INTO DeskGames (deskid, minutes, playerid, losedCards, clearCards, maxStrike) VALUES (
+                    %s, $$%s$$, %s, %s, %s
+                ) RETURNING *
+            ''' % (deskID, minuers, uid, losedCards, clearCards, maxStrike), 'S')
+        # end
+    # end
+
     registerUser = RegisterUserMutation.Field()
     loginUser = LoginUserMutation.Field()
     createDesk = CreateDeskMutation.Field()
@@ -273,6 +314,7 @@ class RootMutation(GraphQL.ObjectType):
     updateCardContent = UpdateCardContentMutation.Field()
     deleteCard = DeleteCardMutation.Field()
     deleteDesk = DeleteDeskMutation.Field()
+    playDesk = PlayDeskMutation.Field()
 # end
 
 schema = GraphQL.Schema(query = RootQuery, mutation = RootMutation, auto_camelcase = False)

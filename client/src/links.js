@@ -7,6 +7,10 @@ const links = {
         absolute: '/desk',
         route: '/desk/:id'
     },
+    "PLAY_DESK_PAGE": {
+        absolute: '/pd',
+        route: '/pd/:id'
+    },
     "LOGOUT_PAGE": {
         absolute: '/logout',
         route: '/logout'

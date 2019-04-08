@@ -10,6 +10,7 @@ import { BrowserRouter } from 'react-router-dom';
 import Dashboard from './pages/dashboard';
 import Authentication from './pages/authentication';
 import DeskP from './pages/deskpage';
+import PlayDesk from './pages/playdesk';
 
 // Stuff
 import Nav from './pages/__forall__/nav';
@@ -60,6 +61,13 @@ class App extends Component {
                                                     path={ links["DESK_PAGE"].route }
                                                     condition={ !!this.clientID }
                                                     component={ DeskP }
+                                                    redirect={ Authentication }
+                                                    exact
+                                                />
+                                                <PrivateRoute
+                                                    path={ links["PLAY_DESK_PAGE"].route }
+                                                    condition={ !!this.clientID }
+                                                    component={ PlayDesk }
                                                     redirect={ Authentication }
                                                     exact
                                                 />
