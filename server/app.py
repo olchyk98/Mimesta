@@ -58,7 +58,7 @@ fetchDB("""
 fetchDB("""
     CREATE TABLE IF NOT EXISTS DeskGames (
         id bigserial primary key,
-        minutes int NOT NULL,
+        seconds int NOT NULL,
         playerid bigserial NOT NULL,
         losedCards int NOT NULL,
         clearCards int NOT NULL,

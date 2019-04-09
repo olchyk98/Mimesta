@@ -73,7 +73,7 @@ class Hero extends Component {
                             icon: faBox,
                             url: null,
                             title: "Archive",
-                            moveTo: '/'
+                            moveTo: '/pd/1'
                         },
                         {
                             icon: faUserFriends,

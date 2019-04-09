@@ -240,7 +240,12 @@ class Hero extends Component {
     }
 
     componentDidMount() {
+        this._isMounted = true;
         this.fetchDesk(this.props.match.params.id);
+    }
+
+    componentWillUnmount() {
+        this._isMounted = false;
     }
 
     fetchDesk = id => {
@@ -266,9 +271,11 @@ class Hero extends Component {
         }).then(({ data: { getDesk: a } }) => {
             if(!a) return this.props.history.push(links["DASHBOARD_PAGE"].absolute);
 
-            this.setState(() => ({
-                desk: a
-            }));
+            if(this._isMounted) {
+                this.setState(() => ({
+                    desk: a
+                }));
+            }
         }).catch(console.error);
     }
 
