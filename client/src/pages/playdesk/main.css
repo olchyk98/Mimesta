@@ -82,6 +82,14 @@
     color:rgba(0, 0, 0, .85);
 }
 
+.rn-playdesk-display {
+    position:absolute;
+    top:50%;
+    left:50%;
+    margin-right:50%;
+    transform:translate(-50%, -50%);
+}
+
 .rn-playdesk-display-card {
     height:350px;
     width:600px;
@@ -101,12 +109,17 @@
     display:flex;
     align-items:center;
     justify-content:center;
-    transition:.45s;
     backface-visibility:hidden;
     position:absolute;
     top:0;
     left:0;
     overflow:scroll;
+    transition:0s;
+}
+
+.rn-playdesk-display-card.rotated {
+    transition:.45s; /* skip */
+    display:none;
 }
 
 .rn-playdesk-display-card-side.front {
