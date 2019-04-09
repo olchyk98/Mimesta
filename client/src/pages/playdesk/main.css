@@ -179,3 +179,76 @@
     font-weight:400;
     font-family:"Quicksand";
 }
+
+.rn-playdesk-windisplay {
+    background:#44188D;
+    height:100%;
+    width:100%;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+}
+
+.rn-playdesk-windisplay-icon {
+    font-size:7rem;
+    color:white;
+    transition:.1s;
+}
+
+.rn-playdesk-windisplay-icon:hover {
+    color:orange;
+}
+
+.rn-playdesk-windisplay-text {
+    color:white;
+    font-family:"Quicksand";
+    font-size:2.5rem;
+    margin-top:10px;
+    margin-bottom:2.5px;
+}
+
+.rn-playdesk-windisplay-control {
+    --bw:3px;
+
+    font-size:1.1rem;
+    background:rebeccapurple;
+    color:white;
+    font-family:"Quicksand";
+    text-transform:uppercase;
+    padding:15px;
+    box-shadow:var(--bw) var(--bw) 0 0 gray;
+    cursor:pointer;
+    margin-bottom:20px;
+    transition:.25s;
+}
+
+.rn-playdesk-windisplay-control:hover {
+    --bw:2px;
+
+    transform:scale(1.05);
+}
+
+.rn-playdesk-windisplay-control:active {
+    --bw:0px;
+
+    transition:50ms;
+    transform:scale(.925);
+}
+
+.rn-playdesk-windisplay-stats {
+    display:flex;
+    align-items:center;
+    margin-bottom:15px;
+}
+
+.rn-playdesk-windisplay-stats > span {
+    margin:0 2.5px;
+    font-family:"Quicksand";
+    font-weight:200;
+    color:white;
+}
+
+.rn-playdesk-windisplay-stats > span:nth-child(even) {
+    opacity:.75;
+}

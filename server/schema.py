@@ -65,7 +65,7 @@ class CardType(GraphQL.ObjectType):
 
 class DeskGameType(GraphQL.ObjectType):
     id = GraphQL.ID()
-    minutes = GraphQL.Int()
+    seconds = GraphQL.Int()
     playerid = GraphQL.Int()
     losedCards = GraphQL.Int()
     clearCards = GraphQL.Int()
@@ -279,7 +279,7 @@ class RootMutation(GraphQL.ObjectType):
     class PlayDeskMutation(GraphQL.Mutation):
         class Arguments:
             deskID = GraphQL.NonNull(GraphQL.ID)
-            minutes = GraphQL.NonNull(GraphQL.Int)
+            seconds = GraphQL.NonNull(GraphQL.Int)
             losedCards = GraphQL.NonNull(GraphQL.Int)
             clearCards = GraphQL.NonNull(GraphQL.Int)
             maxStrike = GraphQL.NonNull(GraphQL.Int)
@@ -287,7 +287,7 @@ class RootMutation(GraphQL.ObjectType):
 
         Output = DeskGameType
 
-        def mutate(self, info, deskID, minuers, losedCards, clearCards, maxStrike):
+        def mutate(self, info, deskID, seconds, losedCards, clearCards, maxStrike):
             # Check if user has a session
             uid = session.get('userid', None)
             if(not uid): raise GraphQLError("No session")
@@ -299,10 +299,10 @@ class RootMutation(GraphQL.ObjectType):
 
             # Create a game session
             return fetchDB('''
-                INSERT INTO DeskGames (deskid, minutes, playerid, losedCards, clearCards, maxStrike) VALUES (
-                    %s, $$%s$$, %s, %s, %s
+                INSERT INTO DeskGames (deskid, seconds, playerid, losedCards, clearCards, maxStrike) VALUES (
+                    $$%s$$, %s, $$%s$$, %s, %s, %s
                 ) RETURNING *
-            ''' % (deskID, minuers, uid, losedCards, clearCards, maxStrike), 'S')
+            ''' % (deskID, seconds, uid, losedCards, clearCards, maxStrike), 'S')
         # end
     # end
 

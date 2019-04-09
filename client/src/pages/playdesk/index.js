@@ -2,7 +2,7 @@ import React, { Component, PureComponent } from 'react';
 import './main.css';
 
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faBomb } from '@fortawesome/free-solid-svg-icons';
+import { faBomb, faBirthdayCake } from '@fortawesome/free-solid-svg-icons';
 import { faEye, faSmileBeam, faSurprise, faFlushed, faMehRollingEyes } from '@fortawesome/free-regular-svg-icons';
 
 import { gql } from 'apollo-boost';
@@ -127,27 +127,36 @@ class Hero extends Component {
     constructor(props) {
         super(props);
 
-        this.state = {
+        this.initialState = {
             isLoading: true,
             showAnswer: false,
             questions: null,
             queue: null,
             strike: 0,
-            deskID: null
+            deskID: null,
+            totalCards: null,
+            isWinner: false,
+            losedCards: 0,
+            maxStrike: 0,
+            clearCards: 0
         }
 
-        // this.stopwatch could be declared as a state variable,
-        // but I think we don't need it + it's worse for performance
+        this.state = Object.assign({}, this.initialState);
+
+        // more variables |=> this.resetVariables
+
+        this.requestedID = this.props.match.params.id;
+    }
+
+    resetVariables = () => {
+        this.setState(() => this.initialState);
         this.tempcIndex =
         this.playSeconds =
-        this.losedCards =
-        this.maxStrike =
-        this.clearCards = 0;
         this.stockwatchINT = null;
     }
 
     componentDidMount() {
-        this.loadCards(this.props.match.params.id);
+        this.loadCards(this.requestedID);
     }
 
     setStopwatch = (run = true) => {
@@ -162,7 +171,8 @@ class Hero extends Component {
     getCurrentCard = () => this.state.queue[0];
 
     loadCards = deskID => {
-        if(!this.state.isLoading || this.state.isWinner) this.setState(() => ({
+        this.resetVariables();
+        this.setState(() => ({
             isLoading: true,
             isWinner: false
         }));
@@ -206,7 +216,8 @@ class Hero extends Component {
             this.setState(() => ({
                 isLoading: false,
                 questions: a.cards,
-                deskID: a.id
+                deskID: a.id,
+                totalCards: a.cards.length
             }), this.nextCard);
         }).catch((err) => {
             this.props.history.push(links["DASHBOARD_PAGE"].absolute);
@@ -255,12 +266,20 @@ class Hero extends Component {
         }));
     }
 
+    updateMaxStrike = () => {
+        if(this.state.strike && this.state.strike > this.state.maxStrike) {
+            this.setState(({ strike }) => ({
+                maxStrike: strike
+            }));
+        }
+    }
+
     rateCard = rating => {
         if(!this.state.showAnswer) return;
 
         const infu = (obj, itt) => {
-            this.losedCards++;
-            if(this.state.strike && this.state.strike > this.maxStrike) this.maxStrike = this.state.strike;
+            this.setState(({ losedCards: a }) => ({ losedCards: a + 1 }));
+            this.updateMaxStrike();
             this.setState(() => ({ strike: 0 }));
 
             const a = [];
@@ -269,18 +288,18 @@ class Hero extends Component {
                 a.push({ ...obj, index: ++this.tempcIndex });
             }
 
-            this.setState(({ queue: b }) => ({
+            this.setState(({ queue: b, totalCards: c }) => ({
                 queue: this.completeQueue([
                     ...b,
                     ...a
-                ])
+                ]),
+                totalCards: c + itt
             }));
         }
 
         switch(rating) {
             case 4:
-                this.clearCards++;
-                this.setState(({ strike: a }) => ({ strike: a + 1 }));
+                this.setState(({ strike: a, clearCards: b }) => ({ strike: a + 1, clearCards: b + 1 }));
             break; // good // passed
             case 3: // push one
                 infu(this.getCurrentCard(), 1);
@@ -298,21 +317,22 @@ class Hero extends Component {
     }
 
     endGame = (afterError = false) => {
-        // 1. Submit game
-        // 2. Show blue winning screen
-
+        this.updateMaxStrike();
+        
         client.mutate({
             mutation: gql`
                 mutation($deskID: ID!, $seconds: Int! $losedCards: Int!, $clearCards: Int!, $maxStrike: Int!) {
-                    playDesk(deskID: $deskID, seconds: $seconds, losedCards: $losedCards, clearCards: $clearCards, maxStrike: $maxStrike)
+                    playDesk(deskID: $deskID, seconds: $seconds, losedCards: $losedCards, clearCards: $clearCards, maxStrike: $maxStrike) {
+                        id
+                    }
                 }
             `,
             variables: {
                 deskID: this.state.deskID,
                 seconds: this.playSeconds,
-                losedCards: this.losedCards,
-                clearCards: this.clearCards,
-                maxStrike: this.maxStrike
+                losedCards: this.state.losedCards,
+                clearCards: this.state.clearCards,
+                maxStrike: this.state.maxStrike
             }
         }).then(({ data: { playDesk: a } }) => {
             if(!a) return null;
@@ -348,7 +368,7 @@ class Hero extends Component {
                                     <section className="rn-playdesk-progressbar">
                                         <div
                                             style={{
-                                                width: this.state.queue.length / this.state.questions.length * 100 + '%'
+                                                width: this.state.queue.length / this.state.totalCards * 100 + '%'
                                             }}
                                         />
                                     </section>
@@ -374,7 +394,21 @@ class Hero extends Component {
                                 </div>
                             </>
                         ) : (
-                            null
+                            <div className="rn-playdesk-windisplay">
+                                <div className="rn-playdesk-windisplay-icon">
+                                    <FontAwesomeIcon icon={ faBirthdayCake } />
+                                </div>
+                                <h2 className="rn-playdesk-windisplay-text">Good job!</h2>
+                                <div className="rn-playdesk-windisplay-stats">
+                                    <span><strong>{ this.state.clearCards }</strong> successfully passed cards</span>
+                                    <span>•</span>
+                                    <span>You didn't know answer <strong>{ this.state.losedCards }</strong> time{ (this.state.losedCards !== 1) ? "s" : "" }</span>
+                                    <span>•</span>
+                                    <span><strong>{ this.state.maxStrike }</strong> perfectly learned cards in row</span>
+                                </div>
+                                <button className="rn-playdesk-windisplay-control definp" onClick={ () => this.props.history.push(links["DASHBOARD_PAGE"].absolute) }>Move to dashboard</button>
+                                <button className="rn-playdesk-windisplay-control definp" onClick={ () => this.loadCards(this.requestedID) }>Play again</button>
+                            </div>
                         )
                     ) : (
                         <LoadingIcon
