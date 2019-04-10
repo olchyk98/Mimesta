@@ -530,6 +530,7 @@ class Hero extends Component {
                                             {
                                                 icon: faPlay,
                                                 info: "Play desk",
+                                                noRender: !this.state.desk.cards.length,
                                                 onClick: () => this.props.history.push(`${ links["PLAY_DESK_PAGE"].absolute }/${ this.state.desk.id }`)
                                             },
                                             {

@@ -312,6 +312,7 @@ class RootMutation(GraphQL.ObjectType):
 
             # Get number of cards in the desk
             cardsInt = fetchDB('''SELECT COUNT(id) FROM Cards WHERE deskid = $$%s$$''' % (deskID), 'S').count
+            if(not cardsInt): return None # Can't play if no cards
 
             # Create a game session
             return fetchDB('''

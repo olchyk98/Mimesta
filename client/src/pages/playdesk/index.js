@@ -180,7 +180,7 @@ class Hero extends Component {
         const castError = () => this.props.goDialog({
             iconStyle: "error",
             icon: faBomb,
-            text: "Oops. We couldn't load cards from this desk. Please, try later.",
+            text: "Oops. We couldn't load cards from this desk. Probably this desk does not exist.",
             buttons: [
                 {
                     text: "Close",
@@ -207,7 +207,7 @@ class Hero extends Component {
                 shuffleLimit: 50
             }
         }).then(({ data: { getDesk: a } }) => {
-            if(!a) {
+            if(!a || !a.cards || !a.cards.length) {
                 this.props.history.push(links["DASHBOARD_PAGE"].absolute);
                 castError();
                 return;
