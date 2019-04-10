@@ -100,42 +100,6 @@
     font-size: .5rem;
 }
 
-.rn-desk-cards-mat {
-    width: 100%;
-    font-family: "Roboto";
-    border-collapse: collapse;
-    font-weight: 300;
-}
-
-.rn-desk-cards-mat table,
-.rn-desk-cards-mat th,
-.rn-desk-cards-mat td {
-    border: 1px solid rgba(0, 0, 0, .1);
-}
-
-.rn-desk-cards-mat tr {
-    height: 35px;
-    transition: .1s;
-}
-
-.rn-desk-cards-mat tr:not(:first-child) {
-    cursor: pointer;
-}
-
-.rn-desk-cards-mat tr:nth-child(odd):not(:first-child) {
-    background: rgba(0, 0, 0, .005);
-}
-
-.rn-desk-cards-mat tr.selected {
-    background: rgb(29, 161, 242) !important;
-    color: white;
-    border-color: transparent;
-}
-
-.rn-desk-cards-mat td {
-    text-align: center;
-}
-
 .rn-desk-cards {
     height: auto;
     width: 100%;

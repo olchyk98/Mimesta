@@ -73,7 +73,7 @@ class Hero extends Component {
                             icon: faBox,
                             url: null,
                             title: "Archive",
-                            moveTo: '/'
+                            moveTo: links["ARCHIVE_PAGE"].absolute
                         },
                         {
                             icon: faUserFriends,
@@ -97,7 +97,7 @@ class Hero extends Component {
                             icon: faDungeon,
                             url: null,
                             title: "Logout",
-                            moveTo: '/'
+                            moveTo: links["LOGOUT_PAGE"].absolute
                         }
                     ].map(({ icon, title, moveTo }, index) => (
                         <button

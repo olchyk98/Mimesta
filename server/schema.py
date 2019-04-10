@@ -1,15 +1,3 @@
-'''###'''
-''' AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-'''###
-''' I HATE THIS FUCKED POSTGRESQL
-'''###
-''' FUCK THIS FUCKEN SQL SYNTAX, FUCK FUCK FUCK FUCK FUCK FUCK
-'''### ...anyway, you have this $$ thing that is OK
-    ### WTF PYTHON? WHERE ARE `` QUOTES, UH!? FUCK FUCK FUCK FUCKFUCK FUCK FUCK FUCKFUCK FUCK FUCK FUCKFUCK FUCK FUCK FUCKFUCK FUCK FUCK FUCKFUCK FUCK FUCK FUCKFUCK FUCK FUCK FUCKFUCK FUCK FUCK FUCKFUCK FUCK FUCK FUCKFUCK FUCK FUCK FUCKFUCK FUCK FUCK FUCKFUCK FUCK FUCK FUCKFUCK FUCK FUCK FUCKFUCK FUCK FUCK FUCKFUCK FUCK FUCK FUCKFUCK FUCK FUCK FUCKFUCK FUCK FUCK FUCKFUCK FUCK FUCK FUCKFUCK FUCK FUCK FUCKFUCK FUCK FUCK FUCKFUCK FUCK FUCK FUCKFUCK FUCK FUCK FUCKFUCK FUCK FUCK FUCKFUCK FUCK FUCK FUCK
-###
-''' FUCK THIS FUCKEN SQL, FUCK FUCK FUCK FUCK FUCK FUCK
-'''###'''
-
 import graphene as GraphQL
 from graphql import GraphQLError
 from flask import session
@@ -36,6 +24,10 @@ class UserType(GraphQL.ObjectType):
     learnedCardsMonth = GraphQL.Int()
     def resolve_learnedCardsMonth(self, info):
         return fetchDB('''SELECT SUM(cardsInt) FROM DeskGames WHERE playerid = $$%s$$ AND (DATE_PART('month', NOW()) - DATE_PART('month', date)) <= 1''' % (self.id), 'S').sum or 0
+    # end
+    availableCards = GraphQL.List(lambda: CardType, limit = GraphQL.Int())
+    def resolve_availableCards(self, info, limit):
+        return fetchDB('''SELECT Cards.* FROM Cards, Desks WHERE $${"%s"}$$ @> Desks.ownersid LIMIT %s''' % (self.id, limit), 'M')
     # end
 # end
 

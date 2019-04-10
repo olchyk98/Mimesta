@@ -11,6 +11,10 @@ const links = {
         absolute: '/pd',
         route: '/pd/:id'
     },
+    "ARCHIVE_PAGE": {
+        absolute: '/archive',
+        route: '/archive'
+    },
     "LOGOUT_PAGE": {
         absolute: '/logout',
         route: '/logout'

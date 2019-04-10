@@ -11,6 +11,7 @@ import Dashboard from './pages/dashboard';
 import Authentication from './pages/authentication';
 import DeskP from './pages/deskpage';
 import PlayDesk from './pages/playdesk';
+import Archive from './pages/archive';
 
 // Stuff
 import Nav from './pages/__forall__/nav';
@@ -71,11 +72,21 @@ class App extends Component {
                                                     redirect={ Authentication }
                                                     exact
                                                 />
+                                                <PrivateRoute
+                                                    path={ links["ARCHIVE_PAGE"].route }
+                                                    condition={ !!this.clientID }
+                                                    component={ Archive }
+                                                    redirect={ Authentication }
+                                                    exact
+                                                />
                                                 <Route
                                                     path={ links["LOGOUT_PAGE"].route }
                                                     component={() => {
-                                                        cookieControl.delete(["userid"])
-                                                        return null;
+                                                        cookieControl.delete(["userdata"]);
+                                                        window.location.href = links["DASHBOARD_PAGE"].absolute;
+                                                        return(
+                                                            <pre>Processing request....</pre>
+                                                        );
                                                     }}
                                                     exact
                                                 />

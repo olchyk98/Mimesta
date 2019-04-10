@@ -1,0 +1,78 @@
+.rn-archive {
+    background:rgba(0, 0, 0, .01);
+}
+
+.rn-archive-controls {
+    height:35px;
+    width:100vw;
+    display:flex;
+    align-items:center;
+    background:white;
+    justify-content:center;
+}
+
+.rn-archive-controls-btn {
+    --size:27.5px;
+
+    margin:0 7.5px;
+    color:gray;
+    border-radius:2.5px;
+    height:var(--size);
+    width:var(--size);
+    font-size:1rem;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    cursor:pointer;
+    transition:.2s;
+}
+
+.rn-archive-controls-btn:hover {
+    background:rgba(0, 0, 255, .05);
+}
+
+.rn-archive-controls-btn.disabled {
+    color:gray;
+    opacity:.1;   
+}
+
+.rn-archive-controls-btn.active {
+    background:rgba(0, 0, 255, .1);
+    color:rgba(0, 0, 255, 1);
+}
+
+.rn-archive-search {
+    margin:10px 0;
+    border-radius:15px;
+    height:27.5px;
+    position:relative;
+    width:calc(100% - 20px);
+    display:flex;
+    margin-left:auto;
+    margin-right:auto;
+    overflow:hidden;
+    background:white;
+    border:1px solid rgba(0, 0, 0, .1);
+}
+
+.rn-archive-search > input {
+    width:100%;
+    height:100%;
+    color:rgba(0, 0, 0, .9);
+    font-size:.975rem;
+    flex-shrink:1;
+}
+
+.rn-archive-search > div {
+    height:100%;
+    width:40px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    flex-shrink:0;
+    color:rgba(0, 0, 0, .75);
+}
+
+.rn-archive-table {
+    background:white;
+}
