@@ -334,7 +334,6 @@ class Hero extends Component {
                 maxStrike: this.state.maxStrike
             }
         }).then(({ data: { playDesk: a } }) => {
-            console.log(a);
             if(!a) return null;
             
             this.setState(() => ({

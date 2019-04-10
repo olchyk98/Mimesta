@@ -306,7 +306,7 @@ class RootMutation(GraphQL.ObjectType):
             # end
 
             # Check if desk exists
-            if(not fetchDB('''SELECT id FROM Desks WHERE id = $$%s$$''' % (deskID)), 'S'):
+            if(not fetchDB('''SELECT id FROM Desks WHERE id = $$%s$$''' % (deskID), 'S')):
                 return None
             # end
 
@@ -314,9 +314,6 @@ class RootMutation(GraphQL.ObjectType):
             cardsInt = fetchDB('''SELECT COUNT(id) FROM Cards WHERE deskid = $$%s$$''' % (deskID), 'S').count
 
             # Create a game session
-            print('''INSERT INTO DeskGames (cardsInt, deskid, seconds, playerid, losedCards, clearCards, maxStrike) VALUES (
-                    %s, $$%s$$, %s, $$%s$$, %s, %s, %s
-                ) RETURNING *'''% (cardsInt, deskID, seconds, uid, losedCards, clearCards, maxStrike))
             return fetchDB('''
                 INSERT INTO DeskGames (cardsInt, deskid, seconds, playerid, losedCards, clearCards, maxStrike) VALUES (
                     %s, $$%s$$, %s, $$%s$$, %s, %s, %s
