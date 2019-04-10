@@ -25,9 +25,17 @@ class UserType(GraphQL.ObjectType):
     desks = GraphQL.List(lambda: DeskType)
     resolve_desks = lambda self, info: fetchDB('''SELECT * FROM Desks WHERE (creatorid = $$%s$$)''' % (self.id), 'M')
     #-
-    addedCardMonth = GraphQL.Int()
-    def resolve_addedCardMonth(self, info):
-        return fetchDB('''SELECT COUNT(*) FROM Cards WHERE creatorid = $$%s$$ AND (DATE_PART('month', NOW()) - DATE_PART('month', addtime)) <= 1''', 'S' % (self.id)).count
+    addedCardsMonth = GraphQL.Int()
+    def resolve_addedCardsMonth(self, info):
+        return fetchDB('''SELECT COUNT(id) FROM Cards WHERE creatorid = $$%s$$ AND (DATE_PART('month', NOW()) - DATE_PART('month', addtime)) <= 1''' % (self.id), 'S').count or 0
+    # end
+    playedSecondsMonth = GraphQL.Int()
+    def resolve_playedSecondsMonth(self, info):
+        return fetchDB('''SELECT SUM(seconds) FROM DeskGames WHERE playerid = $$%s$$ AND (DATE_PART('month', NOW()) - DATE_PART('month', date)) <= 1''' % (self.id), 'S').sum or 0
+    # end
+    learnedCardsMonth = GraphQL.Int()
+    def resolve_learnedCardsMonth(self, info):
+        return fetchDB('''SELECT SUM(cardsInt) FROM DeskGames WHERE playerid = $$%s$$ AND (DATE_PART('month', NOW()) - DATE_PART('month', date)) <= 1''' % (self.id), 'S').sum or 0
     # end
 # end
 
@@ -41,7 +49,7 @@ class DeskType(GraphQL.ObjectType):
     resolve_cards = lambda self, info: fetchDB('''SELECT * FROM Cards WHERE (deskid = $$%s$$) ORDER BY updatetime DESC''' % (self.id), 'M')
     # -
     cardsInt = GraphQL.Int()
-    resolve_cardsInt = lambda self, info: fetchDB('''SELECT COUNT(*) FROM Cards WHERE (deskid = $$%s$$)''' % (self.id), 'S').count
+    resolve_cardsInt = lambda self, info: fetchDB('''SELECT COUNT(id) FROM Cards WHERE (deskid = $$%s$$)''' % (self.id), 'S').count or 0
     # -
     ownersInt = GraphQL.Int()
     resolve_ownersInt = lambda self, info: len(self.ownersid)
@@ -297,12 +305,23 @@ class RootMutation(GraphQL.ObjectType):
                 return None
             # end
 
+            # Check if desk exists
+            if(not fetchDB('''SELECT id FROM Desks WHERE id = $$%s$$''' % (deskID)), 'S'):
+                return None
+            # end
+
+            # Get number of cards in the desk
+            cardsInt = fetchDB('''SELECT COUNT(id) FROM Cards WHERE deskid = $$%s$$''' % (deskID), 'S').count
+
             # Create a game session
+            print('''INSERT INTO DeskGames (cardsInt, deskid, seconds, playerid, losedCards, clearCards, maxStrike) VALUES (
+                    %s, $$%s$$, %s, $$%s$$, %s, %s, %s
+                ) RETURNING *'''% (cardsInt, deskID, seconds, uid, losedCards, clearCards, maxStrike))
             return fetchDB('''
-                INSERT INTO DeskGames (deskid, seconds, playerid, losedCards, clearCards, maxStrike) VALUES (
-                    $$%s$$, %s, $$%s$$, %s, %s, %s
+                INSERT INTO DeskGames (cardsInt, deskid, seconds, playerid, losedCards, clearCards, maxStrike) VALUES (
+                    %s, $$%s$$, %s, $$%s$$, %s, %s, %s
                 ) RETURNING *
-            ''' % (deskID, seconds, uid, losedCards, clearCards, maxStrike), 'S')
+            ''' % (cardsInt, deskID, seconds, uid, losedCards, clearCards, maxStrike), 'S')
         # end
     # end
 

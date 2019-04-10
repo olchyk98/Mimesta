@@ -64,7 +64,8 @@ fetchDB("""
         clearCards int NOT NULL,
         date timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
         maxStrike int NOT NULL,
-        deskid bigserial NOT NULL
+        deskid bigserial NOT NULL,
+        cardsInt int NOT NULL
     )
 """, False)
 

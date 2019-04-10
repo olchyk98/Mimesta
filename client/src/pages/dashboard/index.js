@@ -34,7 +34,10 @@ class StatsCard extends PureComponent {
 
 StatsCard.propTypes = {
     title: PropTypes.string.isRequired,
-    value: PropTypes.string.isRequired,
+    value: PropTypes.oneOfType([
+        PropTypes.string.isRequired,
+        PropTypes.number.isRequired
+    ]),
     icon: PropTypes.object.isRequired,
     index: PropTypes.number.isRequired
 }
@@ -50,17 +53,17 @@ class Stats extends Component {
                             {
                                 icon: faPlay,
                                 title: "Learned cards",
-                                value: "200"
+                                value: this.props.learnedCards
                             },
                             {
                                 icon: faPlus,
                                 title: "Added cards",
-                                value: "900"
+                                value: this.props.addedCards
                             },
                             {
                                 icon: faClock,
                                 title: "Minutes",
-                                value: "145"
+                                value: this.props.playedMinutes
                             }
                         ].map(({ icon, title, value }, index) => (
                             <StatsCard
@@ -162,7 +165,10 @@ class Hero extends Component {
         super(props);
 
         this.state = {
-            desks: false
+            desks: false,
+            learnedCards: null,
+            addedCards: null,
+            playedMinutes: null
         }
     }
 
@@ -176,6 +182,9 @@ class Hero extends Component {
                 query {
                     user {
                         id,
+                        learnedCardsMonth,
+                        playedSecondsMonth,
+                        addedCardsMonth,
                         desks {
                             id,
                             name,
@@ -188,6 +197,9 @@ class Hero extends Component {
             if(!a) return;
 
             this.setState(() => ({
+                learnedCards: a.learnedCardsMonth,
+                addedCards: a.addedCardsMonth,
+                playedMinutes: Math.floor(a.playedSecondsMonth / 60),
                 desks: a.desks
             }));
         }).catch(console.error);
@@ -196,7 +208,11 @@ class Hero extends Component {
     render() {
         return(
             <div className="rn rn-dashboard">
-                <Stats />
+                <Stats
+                    learnedCards={ (Number.isInteger(this.state.learnedCards)) ? this.state.learnedCards : "..." }
+                    addedCards={ (Number.isInteger(this.state.addedCards)) ? this.state.addedCards : "..." }
+                    playedMinutes={ (Number.isInteger(this.state.playedMinutes)) ? this.state.playedMinutes : "..." }
+                />
                 <Desks
                     desks={ this.state.desks }
                     isLoading={ this.state.desks === false }

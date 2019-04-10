@@ -230,23 +230,21 @@ class Hero extends Component {
         if(!this.state.questions) return;
 
         if(this.state.queue) {
-            this.setState(({ queue: a }) => {
-                const b = Array.from(a);
-                b.splice(0, 1);
-                const c = b[0];
+            const b = Array.from(this.state.queue);
+                  b.splice(0, 1);
+                  const c = b[0];
+  
+            if(!c) { // desk end |> sq
+                this.endGame();
+                this.setState(() => ({
+                    isLoading: true
+                }));
+            }
 
-                if(!c) { // desk end |> sq
-                    this.endGame();
-                    return({
-                        isLoading: true
-                    });
-                }
-
-                return({
-                    queue: this.completeQueue(b),
-                    showAnswer: false
-                });
-            });
+            this.setState(() => ({
+                queue: this.completeQueue(b),
+                showAnswer: false
+            }));
         } else { // build queue
             this.setStopwatch(false);
             const a = Array.from(this.state.questions).sort(() => Math.random() - .5);
@@ -289,17 +287,20 @@ class Hero extends Component {
             }
 
             this.setState(({ queue: b, totalCards: c }) => ({
-                queue: this.completeQueue([
-                    ...b,
+                queue: [
+                    ...this.state.queue,
                     ...a
-                ]),
+                ],
                 totalCards: c + itt
-            }));
+            }), this.nextCard);
         }
 
         switch(rating) {
             case 4:
-                this.setState(({ strike: a, clearCards: b }) => ({ strike: a + 1, clearCards: b + 1 }));
+                this.setState(({ strike: a, clearCards: b }) => ({
+                    strike: a + 1, clearCards: b + 1
+                }));
+                this.nextCard();
             break; // good // passed
             case 3: // push one
                 infu(this.getCurrentCard(), 1);
@@ -312,8 +313,6 @@ class Hero extends Component {
             break;
             default:break;
         }
-
-        this.nextCard();
     }
 
     endGame = (afterError = false) => {
@@ -335,6 +334,7 @@ class Hero extends Component {
                 maxStrike: this.state.maxStrike
             }
         }).then(({ data: { playDesk: a } }) => {
+            console.log(a);
             if(!a) return null;
             
             this.setState(() => ({
