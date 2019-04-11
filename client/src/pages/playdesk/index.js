@@ -320,8 +320,8 @@ class Hero extends Component {
         
         client.mutate({
             mutation: gql`
-                mutation($deskID: ID!, $seconds: Int! $losedCards: Int!, $clearCards: Int!, $maxStrike: Int!) {
-                    playDesk(deskID: $deskID, seconds: $seconds, losedCards: $losedCards, clearCards: $clearCards, maxStrike: $maxStrike) {
+                mutation($deskID: ID!, $seconds: Int! $losedCards: Int!, $clearCards: Int!, $maxStrike: Int!, $cardsID: [ID]!) {
+                    playDesk(deskID: $deskID, seconds: $seconds, losedCards: $losedCards, clearCards: $clearCards, maxStrike: $maxStrike, cardsID: $cardsID) {
                         id
                     }
                 }
@@ -331,7 +331,8 @@ class Hero extends Component {
                 seconds: this.playSeconds,
                 losedCards: this.state.losedCards,
                 clearCards: this.state.clearCards,
-                maxStrike: this.state.maxStrike
+                maxStrike: this.state.maxStrike,
+                cardsID: this.state.questions.map(io => io.id)
             }
         }).then(({ data: { playDesk: a } }) => {
             if(!a) return null;

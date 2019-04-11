@@ -100,7 +100,7 @@ class CardsField extends PureComponent {
                     if(!a || !a.replace(/\s|\n/g, "").length) {
                         target.textContent = this.props.value;
                     } else if(a !== this.props.value) {
-                        alert("UPDATE"); // TODO
+                        this.props.onUpdate(a);
                     }
                 }}
                 suppressContentEditableWarning={ this.props.editing }>{ this.props.value }</td>
@@ -110,7 +110,8 @@ class CardsField extends PureComponent {
 
 CardsField.propTypes = {
    value: PropTypes.string.isRequired,
-   editing: PropTypes.bool.isRequired
+   editing: PropTypes.bool.isRequired,
+   onUpdate: PropTypes.func.isRequired
 }
 
 class Cards extends PureComponent {
@@ -125,21 +126,31 @@ class Cards extends PureComponent {
                             <th>Added</th>
                             <th>Last update</th>
                             <th>Played times</th>
+                            <th>Desk</th>
                             <th>Created by</th>
                         </tr>
                         {
                             (!this.props.isLoading) ? (
-                                this.props.cards.map(({ id, fronttext, backtext, updatetime, showtimes, addtime, creator: { name: crname } }) => (
+                                this.props.cards.map(({ id, fronttext, backtext, updatetime, showtimes, addtime, creator: { name: crname }, desk: { id: deskid, name: deskname } }) => (
                                     <tr
                                         key={ id }
                                         className={ (this.props.selectedCard !== id) ? "" : "selected" }
                                         onClick={ () => this.props.selectCard(id) }>
-                                        <CardsField editing={ this.props.editMode } value={ fronttext } />
-                                        <CardsField editing={ this.props.editMode } value={ backtext } />
-                                        <CardsField editing={ false } value={ convertTime(addtime, 1) } />
-                                        <CardsField editing={ false } value={ (updatetime !== addtime) ? convertTime(updatetime, 1) : "wasn't updated yet" } />
-                                        <CardsField editing={ false } value={ showtimes.toString() } />
-                                        <CardsField editing={ false } value={ crname } />
+                                        <CardsField
+                                            editing={ this.props.editMode }
+                                            value={ fronttext }
+                                            onUpdate={ value => this.props.updateCard(id, value, deskid, 'front') }
+                                        />
+                                        <CardsField
+                                            editing={ this.props.editMode }
+                                            value={ backtext }
+                                            onUpdate={ value => this.props.updateCard(id, value, deskid, 'back') }
+                                        />
+                                        <td>{ convertTime(addtime, 1) }</td>
+                                        <td>{ (updatetime !== addtime) ? convertTime(updatetime, 1) : "wasn't updated yet" }</td>
+                                        <td>{ showtimes.toString() }</td>
+                                        <td>{ deskname }</td>
+                                        <td>{ crname }</td>
                                     </tr>
                                 ))
                             ) : (
@@ -164,6 +175,22 @@ class Hero extends Component {
             editingMode: false,
             selectedCard: null
         }
+
+        this.cardsQuery = `
+            fronttext,
+            backtext,
+            updatetime,
+            showtimes,
+            addtime,
+            desk {
+                id,
+                name
+            },
+            creator {
+                id,
+                name
+            }
+        `;
     }
 
     componentDidMount() {
@@ -200,15 +227,7 @@ class Hero extends Component {
                         id,
                         availableCards(limit: $limit) {
                             id,
-                            fronttext,
-                            backtext,
-                            updatetime,
-                            showtimes,
-                            addtime,
-                            creator {
-                                id,
-                                name
-                            }
+                            ${ this.cardsQuery }
                         }
                     }
                 }
@@ -224,10 +243,58 @@ class Hero extends Component {
 
             this.setState(() => ({
                 cards: a.availableCards,
-                isLoading: false
+                isLoading: false,
+                deskID: a.deskid
             }));
         }).catch((err) => {
             castError(err);
+        });
+    }
+
+    updateCardValue = (id, content, deskID, side) => {
+        const castError = (err = null) => {
+            if(err) console.error(err);
+            this.props.goDialog({
+                iconStyle: "error",
+                icon: faBomb,
+                text: "We couldn't update this card, please try later.",
+                buttons: [
+                    {
+                        text: "Close",
+                        onClick: () => null // modal closes automatically
+                    }
+                ]
+            });
+            this.props.history.push(links["DASHBOARD_PAGE"].absolute);
+        }
+
+        client.mutate({
+            mutation: gql`
+                mutation($id: ID!, $deskID: ID!, $front: String, $back: String) {
+                    updateCardContent(id: $id, deskID: $deskID, front: $front, back: $back) {
+                        id,
+                        ${ this.cardsQuery }
+                    }
+                }
+            `,
+            variables: {
+                id: id,
+                deskID: deskID,
+                front: (side === 'front') ? content : '',
+                back: (side === 'back') ? content : ''
+            }
+        }).then(({ data: { updateCardContent: a } }) => {
+            if(!a) return castError();
+
+            const b = Array.from(this.state.cards);
+            b[b.findIndex(io => io.id === a.id)] = a;
+
+            this.setState(() => ({
+                cards: b
+            }));
+        }).catch((err) => {
+            console.error(err);
+            castError();
         });
     }
 
@@ -246,6 +313,7 @@ class Hero extends Component {
                 />
                 <Search />
                 <Cards
+                    updateCard={ this.updateCardValue }
                     isLoading={ this.state.isLoading }
                     cards={ this.state.cards }
                     selectedCard={ this.state.selectedCard }

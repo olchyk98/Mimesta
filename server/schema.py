@@ -9,10 +9,10 @@ class UserType(GraphQL.ObjectType):
     email = GraphQL.String()
     password = GraphQL.String()
     avatar = GraphQL.String()
-    #-
+    # -
     desks = GraphQL.List(lambda: DeskType)
     resolve_desks = lambda self, info: fetchDB('''SELECT * FROM Desks WHERE (creatorid = $$%s$$)''' % (self.id), 'M')
-    #-
+    # -
     addedCardsMonth = GraphQL.Int()
     def resolve_addedCardsMonth(self, info):
         return fetchDB('''SELECT COUNT(id) FROM Cards WHERE creatorid = $$%s$$ AND (DATE_PART('month', NOW()) - DATE_PART('month', addtime)) <= 1''' % (self.id), 'S').count or 0
@@ -59,8 +59,12 @@ class CardType(GraphQL.ObjectType):
     addtime = GraphQL.DateTime()
     updatetime = GraphQL.DateTime()
     showtimes = GraphQL.Int()
+    # -
     creator = GraphQL.Field(lambda: UserType)
     resolve_creator = lambda self, info: fetchDB('''SELECT * FROM Users WHERE id = $$%s$$ ''' % (self.creatorid), 'S')
+    # -
+    desk = GraphQL.Field(lambda: DeskType)
+    resolve_desk = lambda self, info: fetchDB('''SELECT * FROM Desks WHERE id = $$%s$$''' % (self.deskid), 'S')
 # end
 
 class DeskGameType(GraphQL.ObjectType):
@@ -71,7 +75,7 @@ class DeskGameType(GraphQL.ObjectType):
     clearCards = GraphQL.Int()
     date = GraphQL.DateTime()
     maxStrike = GraphQL.Int()
-    deskid = GraphQL.ID
+    deskid = GraphQL.ID()
 # end
 
 class RootQuery(GraphQL.ObjectType):
@@ -83,6 +87,10 @@ class RootQuery(GraphQL.ObjectType):
     users = GraphQL.List(UserType)
     def resolve_users(self, info):
         return fetchDB('''SELECT * FROM Users''', 'M')
+    # end
+    cards = GraphQL.List(CardType)
+    def resolve_cards(self, info):
+        return fetchDB('''SELECT * FROM Cards''', 'M')
     # end
     # --- DEVELOPMENT ---
     user = GraphQL.Field(UserType)
@@ -215,8 +223,8 @@ class RootMutation(GraphQL.ObjectType):
         class Arguments:
             id = GraphQL.NonNull(GraphQL.ID)
             deskID = GraphQL.NonNull(GraphQL.ID)
-            front = GraphQL.NonNull(GraphQL.String)
-            back = GraphQL.NonNull(GraphQL.String)
+            front = GraphQL.String(required = False)
+            back = GraphQL.String(required = False)
         # end
 
         Output = CardType
@@ -232,7 +240,12 @@ class RootMutation(GraphQL.ObjectType):
             # end
 
             # Update card
-            return fetchDB('''UPDATE Cards SET fronttext = $$%s$$, backtext = $$%s$$, updatetime = NOW() WHERE id = $$%s$$ AND deskid = $$%s$$ RETURNING *''' % (front, back, id, deskID), 'S')
+            if(front): front = '$$%s$$' % (front)
+            else: front = 'Cards.fronttext'
+            if(back): back = '$$%s$$' % (back)
+            else: back = 'Cards.backtext'
+
+            return fetchDB('''UPDATE Cards SET fronttext = %s, backtext = %s, updatetime = NOW() WHERE id = $$%s$$ AND deskid = $$%s$$ RETURNING *''' % (front, back, id, deskID), 'S')
         # end
     # end
 
@@ -271,6 +284,9 @@ class RootMutation(GraphQL.ObjectType):
             uid = session.get('userid', None)
             if(not uid): raise GraphQLError("No session")
 
+            # Delete all linked cards
+            fetchDB('''DELETE FROM Cards WHERE deskud = $$%s$$''' % (id), False)
+
             # Delete desk
             return fetchDB('''DELETE FROM Desks WHERE id = $$%s$$ AND creatorid = $$%s$$ RETURNING *''' % (id, uid), 'S')
         # end
@@ -283,11 +299,12 @@ class RootMutation(GraphQL.ObjectType):
             losedCards = GraphQL.NonNull(GraphQL.Int)
             clearCards = GraphQL.NonNull(GraphQL.Int)
             maxStrike = GraphQL.NonNull(GraphQL.Int)
+            cardsID = GraphQL.List(GraphQL.ID, required = True)
         # end
 
         Output = DeskGameType
 
-        def mutate(self, info, deskID, seconds, losedCards, clearCards, maxStrike):
+        def mutate(self, info, deskID, seconds, losedCards, clearCards, maxStrike, cardsID):
             # Check if user has a session
             uid = session.get('userid', None)
             if(not uid): raise GraphQLError("No session")
@@ -302,16 +319,15 @@ class RootMutation(GraphQL.ObjectType):
                 return None
             # end
 
-            # Get number of cards in the desk
-            cardsInt = fetchDB('''SELECT COUNT(id) FROM Cards WHERE deskid = $$%s$$''' % (deskID), 'S').count
-            if(not cardsInt): return None # Can't play if no cards
+            # Update played cards
+            fetchDB('''UPDATE Cards SET showtimes = showtimes + 1 WHERE id IN %s''' % (str(tuple(cardsID))))
 
             # Create a game session
             return fetchDB('''
                 INSERT INTO DeskGames (cardsInt, deskid, seconds, playerid, losedCards, clearCards, maxStrike) VALUES (
                     %s, $$%s$$, %s, $$%s$$, %s, %s, %s
                 ) RETURNING *
-            ''' % (cardsInt, deskID, seconds, uid, losedCards, clearCards, maxStrike), 'S')
+            ''' % (len(cardsID), deskID, seconds, uid, losedCards, clearCards, maxStrike), 'S')
         # end
     # end
 
