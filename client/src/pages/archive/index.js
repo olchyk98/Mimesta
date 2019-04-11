@@ -12,12 +12,16 @@ import client from '../../apollo';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faSearch, faEdit, faEraser, faBomb } from '@fortawesome/free-solid-svg-icons';
 
+import LoadIcon from '../__forall__/loadicon';
+
 const cardsLimit = 20;
 
 class ControlsButton extends PureComponent {
     render() {
         return(
-            <button className={constructClassName({
+            <button
+                disabled={ this.props.disabled }
+                className={constructClassName({
                 "rn-archive-controls-btn definp": true,
                 "disabled": this.props.disabled,
                 "active": this.props.active
@@ -51,7 +55,7 @@ class Controls extends PureComponent {
                             icon: faEraser,
                             disabled: !this.props.selectedCard,
                             active: false,
-                            onClick: () => null
+                            onClick: this.props.eraseCard
                         }
                     ].map(({ icon, active, disabled, onClick }, index) => (
                         <ControlsButton
@@ -71,13 +75,21 @@ class Controls extends PureComponent {
 class Search extends PureComponent {
     render() {
         return(
-            <div className="rn-archive-search">
+            <div className={constructClassName({
+                    "rn-archive-search": true,
+                    "loading": this.props.isLoading
+                })}>
                 <div>
                     <FontAwesomeIcon icon={ faSearch } />
                 </div>
                 <input
                     className="definp"
                     placeholder="Search"
+                    disabled={ this.props.isLoading }
+                    onChange={({ target }) => {
+                          clearTimeout(target.loadingINT);
+                          target.loadingINT = setTimeout(() => this.props.onSearch(target.value), 300);
+                    }}
                 />
             </div>
         );
@@ -118,47 +130,49 @@ class Cards extends PureComponent {
     render() {
         return(
             <section className="rn-archive-table">
-                <table className="rn-desk-cards-mat">
-                    <tbody>
-                        <tr>
-                            <th>Front side</th>
-                            <th>Back side</th>
-                            <th>Added</th>
-                            <th>Last update</th>
-                            <th>Played times</th>
-                            <th>Desk</th>
-                            <th>Created by</th>
-                        </tr>
-                        {
-                            (!this.props.isLoading) ? (
-                                this.props.cards.map(({ id, fronttext, backtext, updatetime, showtimes, addtime, creator: { name: crname }, desk: { id: deskid, name: deskname } }) => (
-                                    <tr
-                                        key={ id }
-                                        className={ (this.props.selectedCard !== id) ? "" : "selected" }
-                                        onClick={ () => this.props.selectCard(id) }>
-                                        <CardsField
-                                            editing={ this.props.editMode }
-                                            value={ fronttext }
-                                            onUpdate={ value => this.props.updateCard(id, value, deskid, 'front') }
-                                        />
-                                        <CardsField
-                                            editing={ this.props.editMode }
-                                            value={ backtext }
-                                            onUpdate={ value => this.props.updateCard(id, value, deskid, 'back') }
-                                        />
-                                        <td>{ convertTime(addtime, 1) }</td>
-                                        <td>{ (updatetime !== addtime) ? convertTime(updatetime, 1) : "wasn't updated yet" }</td>
-                                        <td>{ showtimes.toString() }</td>
-                                        <td>{ deskname }</td>
-                                        <td>{ crname }</td>
-                                    </tr>
-                                ))
-                            ) : (
-                                null
-                            )
-                        }
-                    </tbody>
-                </table>
+                {
+                    (!this.props.isLoading) ? (
+                        <table className="rn-desk-cards-mat">
+                            <tbody>
+                                <tr>
+                                    <th>Front side</th>
+                                    <th>Back side</th>
+                                    <th>Added</th>
+                                    <th>Last update</th>
+                                    <th>Played times</th>
+                                    <th>Desk</th>
+                                    <th>Created by</th>
+                                </tr>
+                                {
+                                    this.props.cards.map(({ id, fronttext, backtext, updatetime, showtimes, addtime, creator: { name: crname }, desk: { id: deskid, name: deskname } }) => (
+                                        <tr
+                                            key={ id }
+                                            className={ (this.props.selectedCard !== id) ? "" : "selected" }
+                                            onClick={ () => this.props.selectCard(id) }>
+                                            <CardsField
+                                                editing={ this.props.editMode }
+                                                value={ fronttext }
+                                                onUpdate={ value => this.props.updateCard(id, value, deskid, 'front') }
+                                            />
+                                            <CardsField
+                                                editing={ this.props.editMode }
+                                                value={ backtext }
+                                                onUpdate={ value => this.props.updateCard(id, value, deskid, 'back') }
+                                            />
+                                            <td>{ convertTime(addtime, 1) }</td>
+                                            <td>{ (updatetime !== addtime) ? convertTime(updatetime, 1) : "wasn't updated yet" }</td>
+                                            <td>{ showtimes.toString() }</td>
+                                            <td>{ deskname }</td>
+                                            <td>{ crname }</td>
+                                        </tr>
+                                    ))
+                                }
+                            </tbody>
+                        </table>
+                    ) : (
+                        <LoadIcon />
+                    )
+                }
             </section>
         );
     }
@@ -176,7 +190,7 @@ class Hero extends Component {
             selectedCard: null
         }
 
-        this.cardsQuery = `
+        this.cardQuery = `
             fronttext,
             backtext,
             updatetime,
@@ -191,6 +205,8 @@ class Hero extends Component {
                 name
             }
         `;
+
+        this.deletingCard = false;
     }
 
     componentDidMount() {
@@ -227,7 +243,7 @@ class Hero extends Component {
                         id,
                         availableCards(limit: $limit) {
                             id,
-                            ${ this.cardsQuery }
+                            ${ this.cardQuery }
                         }
                     }
                 }
@@ -265,7 +281,6 @@ class Hero extends Component {
                     }
                 ]
             });
-            this.props.history.push(links["DASHBOARD_PAGE"].absolute);
         }
 
         client.mutate({
@@ -273,7 +288,7 @@ class Hero extends Component {
                 mutation($id: ID!, $deskID: ID!, $front: String, $back: String) {
                     updateCardContent(id: $id, deskID: $deskID, front: $front, back: $back) {
                         id,
-                        ${ this.cardsQuery }
+                        ${ this.cardQuery }
                     }
                 }
             `,
@@ -298,12 +313,102 @@ class Hero extends Component {
         });
     }
 
+    eraseSelectedCard = () => {
+        if(this.deletingCard || this.state.selectedCard === null) return;
+        this.deletingCard = true;
+
+        const card = this.state.cards.find(io => io.id === this.state.selectedCard);
+        if(!card) return;
+
+        const castError = (err = null) => {
+            if(err) console.error(err);
+            this.props.goDialog({
+                iconStyle: "error",
+                icon: faBomb,
+                text: "We couldn't delete this card, please try later.",
+                buttons: [
+                    {
+                        text: "Close",
+                        onClick: () => null // modal closes automatically
+                    }
+                ]
+            });
+        }
+
+        client.mutate({
+            mutation: gql`
+                mutation($id: ID!, $deskID: ID!) {
+                    deleteCard(id: $id, deskID: $deskID) {
+                        id
+                    }
+                }
+            `,
+            variables: {
+                id: card.id,
+                deskID: card.desk.id
+            }
+        }).then(({ data: { deleteCard: a } }) => {
+            this.deletingCard = false;
+            if(!a) return castError();
+
+            const b = Array.from(this.state.cards);
+            b.splice(b.findIndex(io => io.id === card.id), 1);
+            this.setState(() => ({
+                cards: b,
+                selectedCard: null
+            }));
+        }).catch((err) => {
+            this.deletingCard = false;
+            console.error(err);
+            castError();
+        });
+    }
+
+    searchCard = query => {
+        const castError = (err = null) => {
+            if(err) console.error(err);
+            this.props.goDialog({
+                iconStyle: "error",
+                icon: faBomb,
+                text: "We couldn't update this card, please try later.",
+                buttons: [
+                    {
+                        text: "Close",
+                        onClick: () => null // modal closes automatically
+                    }
+                ]
+            });
+        }
+
+        client.query({
+            query: gql`
+                query($query: String!) {
+                    searchCards(query: $query) {
+                        id,
+                        ${ this.cardQuery }
+                    }
+                }
+            `,
+            variables: { query }
+        }).then(({ data: { searchCards: a } }) => {
+            if(!a) return castError();
+
+            this.setState(() => ({
+                cards: a
+            }));
+        }).catch((err) => {
+            console.error(err);
+            castError();
+        });
+    }
+
     render() {
         return(
             <div className="rn rn-archive">
                 <Controls
                     editingMode={ this.state.editingMode }
                     selectedCard={ !!this.state.selectedCard }
+                    eraseCard={ this.eraseSelectedCard }
                     toggleEdit={() => {
                         this.setState(({ editingMode: a, selectedCard: b }) => ({
                             editingMode: !a,
@@ -311,7 +416,10 @@ class Hero extends Component {
                         }));
                     }}
                 />
-                <Search />
+                <Search
+                    disabled={ this.state.isLoading }
+                    onSearch={ query => this.searchCard(query) }
+                />
                 <Cards
                     updateCard={ this.updateCardValue }
                     isLoading={ this.state.isLoading }

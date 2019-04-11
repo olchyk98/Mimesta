@@ -113,6 +113,19 @@ class RootQuery(GraphQL.ObjectType):
             return None
         # end
     # end
+    searchCards = GraphQL.List(CardType, query = GraphQL.NonNull(GraphQL.String))
+    def resolve_searchCards(self, info, query):
+        # Check if user has a session
+        uid = session.get('userid', None)
+        if(not uid): raise GraphQLError("No session")
+
+        print('''SELECT Cards.* FROM Cards, Desks WHERE $${"%s"}$$ @> Desks.ownersid AND (fronttext LIKE $$%%%s%$$ OR backtext LIKE $$%%%s%$$)''' % (uid, query, query))
+
+        return None
+        # return fetchDB('''
+        #     SELECT Cards.* FROM Cards, Desks WHERE $${"%s"}$$ @> Desks.ownersid AND (fronttext LIKE $$%%%s%$$ OR backtext LIKE $$%%%s%$$)
+        # ''' % (uid, query, query), 'M')
+    # end
 # end
 
 class RootMutation(GraphQL.ObjectType):
