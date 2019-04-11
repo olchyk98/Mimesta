@@ -119,12 +119,10 @@ class RootQuery(GraphQL.ObjectType):
         uid = session.get('userid', None)
         if(not uid): raise GraphQLError("No session")
 
-        print('''SELECT Cards.* FROM Cards, Desks WHERE $${"%s"}$$ @> Desks.ownersid AND (fronttext LIKE $$%%%s%$$ OR backtext LIKE $$%%%s%$$)''' % (uid, query, query))
-
-        return None
-        # return fetchDB('''
-        #     SELECT Cards.* FROM Cards, Desks WHERE $${"%s"}$$ @> Desks.ownersid AND (fronttext LIKE $$%%%s%$$ OR backtext LIKE $$%%%s%$$)
-        # ''' % (uid, query, query), 'M')
+        return fetchDB('''
+            SELECT Cards.* FROM Cards, Desks WHERE $${"%s"}$$ @> Desks.ownersid
+            AND (fronttext LIKE $$%%%s%%$$ OR backtext LIKE $$%%%s%%$$)
+        ''' % (uid, query, query), 'M')
     # end
 # end
 
