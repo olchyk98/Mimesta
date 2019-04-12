@@ -1,11 +1,20 @@
 import React, { Component } from 'react';
 import './main.css';
 
+class MonthActivityGraph extends Component {
+	render() {
+		return(
+			null
+		);
+	}
+}
 
 class Hero extends Component {
 	render() {
 		return(
-			null
+			<div className="rn rn-stats">
+				<MonthActivityGraph />
+			</div>
 		);
 	}
 }
