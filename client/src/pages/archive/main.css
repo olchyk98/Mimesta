@@ -4,7 +4,7 @@
 
 .rn-archive-controls {
     height:35px;
-    width:100vw;
+    width:calc(100vw - var(--navwidth));
     display:flex;
     align-items:center;
     background:white;
