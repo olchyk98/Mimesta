@@ -15,6 +15,7 @@ import { constructClassName } from '../../utils';
 
 import LoadingIcon from '../__forall__/loadicon';
 
+
 class QueueItem extends PureComponent { // react-fli-move doesn't support stateless functional components
     render() {
         return(
