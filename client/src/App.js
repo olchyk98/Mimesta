@@ -12,6 +12,7 @@ import Authentication from './pages/authentication';
 import DeskP from './pages/deskpage';
 import PlayDesk from './pages/playdesk';
 import Archive from './pages/archive';
+import Statistic from './pages/stats';
 
 // Stuff
 import Nav from './pages/__forall__/nav';
@@ -76,6 +77,13 @@ class App extends Component {
                                                     path={ links["ARCHIVE_PAGE"].route }
                                                     condition={ !!this.clientID }
                                                     component={ Archive }
+                                                    redirect={ Authentication }
+                                                    exact
+                                                />
+                                                <PrivateRoute
+                                                    path={ links["STATISTIC_PAGE"].route }
+                                                    condition={ !!this.clientID }
+                                                    component={ Statistic }
                                                     redirect={ Authentication }
                                                     exact
                                                 />

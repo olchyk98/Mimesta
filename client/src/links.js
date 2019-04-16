@@ -15,6 +15,10 @@ const links = {
         absolute: '/archive',
         route: '/archive'
     },
+    "STATISTIC_PAGE": {
+        absolute: '/stats',
+        route: '/stats'
+    },
     "LOGOUT_PAGE": {
         absolute: '/logout',
         route: '/logout'

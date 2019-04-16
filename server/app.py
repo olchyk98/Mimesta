@@ -32,7 +32,8 @@ fetchDB("""
         id bigserial primary key,
         creatorid bigserial NOT NULL,
         ownersid text[] NOT NULL,
-        name text NOT NULL
+        name text NOT NULL,
+        createtime timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP
     );
 """, False)
     # Cards

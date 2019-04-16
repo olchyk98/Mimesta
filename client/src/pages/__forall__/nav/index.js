@@ -85,7 +85,7 @@ class Hero extends Component {
                             icon: faChartLine,
                             url: null,
                             title: "Statistics",
-                            moveTo: '/'
+                            moveTo: links["STATISTIC_PAGE"].absolute
                         },
                         {
                             icon: faCogs,
