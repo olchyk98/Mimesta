@@ -88,8 +88,8 @@ class Graph extends Component {
 						"visible": this.state.activeData.index
 					})}
 					style={{
-						"left": this.state.activeData.tx + "%",
-						"top": this.state.activeData.ty + "%"
+						left: this.state.activeData.tx + "%",
+						top: this.state.activeData.ty + "%"
 					}}>
 					{ this.state.activeData.value }
 				</span>
