@@ -3,6 +3,11 @@ from graphql import GraphQLError
 from flask import session
 from db_fetch import fetch as fetchDB
 
+class UserTypeStatType(GraphQL.ObjectType):
+    date = GraphQL.DateTime()
+    value = GraphQL.String()
+# end
+
 class UserType(GraphQL.ObjectType):
     id = GraphQL.ID()
     name = GraphQL.String()
@@ -28,6 +33,18 @@ class UserType(GraphQL.ObjectType):
     availableCards = GraphQL.List(lambda: CardType, limit = GraphQL.Int())
     def resolve_availableCards(self, info, limit):
         return fetchDB('''SELECT Cards.* FROM Cards, Desks WHERE $${"%s"}$$ @> Desks.ownersid LIMIT %s''' % (self.id, limit), 'M')
+    # end
+    addedCardsStat = GraphQL.List(lambda: UserTypeStatType)
+    def resolve_addedCardsStat(self, info):
+        return None
+    # end
+    gamesPlayedStat = GraphQL.List(lambda: UserTypeStatType)
+    def resolve_gamesPlayedStat(self, info):
+        return None
+    # end
+    createdDesksStat = GraphQL.List(lambda: UserTypeStatType)
+    def resolve_createdDesksStat(self, info):
+        return None
     # end
 # end
 

@@ -122,14 +122,11 @@ class Hero extends Component {
 
 	componentDidMount() {
 		window.addEventListener('resize', this.resizeFunc);
+		this.loadData();
 	}
 
 	componentWillUnmount() {
 		window.removeEventListener('resize', this.resizeFunc);
-	}
-
-	componentDidMount() {
-		this.loadData(); 
 	}
 
 	loadData = () => {
@@ -153,9 +150,18 @@ class Hero extends Component {
 				query {
 					user {
 						id,
-						addedCardsStat,
-						gamesPlayedStat,
-						createdDesksStat
+						addedCardsStat {
+							date,
+							value
+						},
+						gamesPlayedStat {
+							date,
+							value
+						},
+						createdDesksStat {
+							date,
+							value
+						}
 					}
 				}
 
