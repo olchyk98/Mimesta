@@ -1,4 +1,5 @@
 import React, { Component } from 'react';
+import PropTypes from 'prop-types';
 import './main.css';
 
 import {
@@ -6,8 +7,16 @@ import {
   LineSeries,
   PointSeries
 } from '@data-ui/sparkline';
+import { faBomb } from '@fortawesome/free-solid-svg-icons';
 
 import { constructClassName } from '../../utils';
+import links from '../../links';
+import client from '../../apollo';
+
+import { connect } from 'react-redux';
+import { gql } from 'apollo-boost';
+
+import placeholder from '../__forall__/placeholder.gif';
 
 const data = Array(25).fill().map(Math.random);
 
@@ -24,9 +33,7 @@ class Graph extends Component {
 			},
 			dims: {
 				height: 200,
-				width: 0,
-				left: 0,
-				top: 0
+				width: 0
 			}
 		}
 	}
@@ -41,31 +48,28 @@ class Graph extends Component {
 
 					const a = parseInt(window.getComputedStyle(ref, null)
 							  .getPropertyValue('width')),
-						  b = this.state.dims.width,
-						  { left, top } = ref.getBoundingClientRect();
+						  b = this.state.dims.width;
 
 					if(a !== b) {
 						this.setState(({ dims: _a }) => ({
 							dims: {
 								..._a,
-								width: a,
-								left, top
+								width: a
 							}
 						}));
 					}
 				}}>
+				<h2 className="rn-stats-graph-title">{ this.props.title }</h2>
 				<Sparkline
 					ariaLabel="This is a Sparkline of..."
 					width={ this.state.dims.width }
 					height={ this.state.dims.height }
 					data={ data }
-					onMouseMove={({ index: a, event: { clientX: b, clientY: c }, target: d }) => {
-						const { left, top } = this.state.dims;
-
+					onMouseMove={({ index: a, event: { nativeEvent: { offsetX: b, offsetY: c } }, target: d }) => {
 						this.setState(() => ({
 							activeData: {
-								tx: (b - left) / this.state.dims.width * 100,
-								ty: (c - top) / this.state.dims.height * 100,
+								tx: b / this.state.dims.width * 100,
+								ty: c / this.state.dims.height * 100,
 								index: a,
 								value: data[a]
 							}
@@ -98,9 +102,18 @@ class Graph extends Component {
 	}
 }
 
+Graph.propTypes = {
+	title: PropTypes.string.isRequired
+}
+
 class Hero extends Component {
 	constructor(props) {
 		super(props);
+
+		this.state = {
+			isLoading: true,
+			statsData: null
+		}
 
 		this.resizeFunc = () => {
 			this.forceUpdate();
@@ -115,13 +128,91 @@ class Hero extends Component {
 		window.removeEventListener('resize', this.resizeFunc);
 	}
 
+	componentDidMount() {
+		this.loadData(); 
+	}
+
+	loadData = () => {
+		const castError = () => {
+			this.props.goDialog({
+	            iconStyle: "error",
+	            icon: faBomb,
+	            text: "Something went wrong. Please, try to access your stats a little bit later.",
+	            buttons: [
+	                {
+	                    text: "Close",
+	                    onClick: () => null // modal closes automatically
+	                }
+	            ]
+	        });
+			this.props.history.push(links["DASHBOARD_PAGE"].absolute);
+		}
+
+		client.query({
+			query: gql`
+				query {
+					user {
+						id,
+						addedCardsStat,
+						gamesPlayedStat,
+						createdDesksStat
+					}
+				}
+
+			`
+		}).then(({ data: { user: a } }) => {
+			if(!a) return castError();
+
+			this.setState(() => ({
+				statsData: {
+					addedCards: a.addedCardsStat,
+					gamesPlayed: a.gamesPlayedStat,
+					createdDesks: a.createdDesksStat
+				},
+				isLoading: false
+			}))
+		}).catch((err) => {
+			castError();
+			console.error(err);
+		});
+	}
+
 	render() {
 		return(
 			<div className="rn rn-stats">
-				<Graph />
+				{
+					(!this.state.isLoading) ? (
+						<>
+							<Graph
+								title="Added cards"
+							/>
+							<Graph
+								title="Games"
+							/>
+							<Graph
+								title="Created desks"
+							/>
+						</>
+					) : (
+						<>
+							<img alt="placeholder" src={ placeholder } className="rn-stats-graph placeholder" />
+							<img alt="placeholder" src={ placeholder } className="rn-stats-graph placeholder" />
+							<img alt="placeholder" src={ placeholder } className="rn-stats-graph placeholder" />
+						</>
+					)
+				}
 			</div>
 		);
 	}
 }
 
-export default Hero;
+const mapStateToProps = () => ({});
+
+const mapActionsToProps = {
+    goDialog: payload => ({ type: 'SHOW_DIALOG_MODAL', payload })
+}
+
+export default connect(
+    mapStateToProps,
+    mapActionsToProps
+)(Hero);

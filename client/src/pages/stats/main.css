@@ -5,7 +5,7 @@
 	max-width:calc(100% - var(--padding) * 2 - 10px);
 	width:calc(800px - var(--padding) * 2);
 	background:white;
-	border-radius:2.5px;
+	border-radius:5px;
 	padding:var(--padding);
 	/*display:flex;
 	align-items:center;
@@ -13,7 +13,12 @@
 	margin-left:auto;
 	position:relative;
 	margin-right:auto;
-	box-shadow:0px 0px 15px -7.5px rgba(0, 0, 0, .25);
+	box-shadow:0px 0px 15px -10px rgba(0, 0, 0, .25);
+}
+
+.rn-stats-graph.placeholder {
+	height:140px;
+	display:block;
 }
 
 .rn-stats-graph-tooltip {
@@ -40,4 +45,12 @@
 	visibility:visible;
 	opacity:1;
 	transition:opacity var(--apptrans), visibility 0s;
+}
+
+.rn-stats-graph-title {
+	font-size:2rem;
+	font-family:"Quicksand";
+	font-weight:400;
+	margin:0;
+	margin-bottom:10px;
 }
