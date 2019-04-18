@@ -36,6 +36,37 @@ class UserType(GraphQL.ObjectType):
     # end
     addedCardsStat = GraphQL.List(lambda: UserTypeStatType)
     def resolve_addedCardsStat(self, info):
+        cards = fetchDB('''SELECT id, addtime::timestamp::date FROM Cards WHERE creatorid = $$%s$$''' % (self.id), 'M')
+
+        res = []
+
+        def searchv(value, field): # fin - field index
+            for ma in range(len(res)):
+                if(res[ma][field] == value):
+                    return ma
+                    break;
+                # end
+            # end
+            return False
+        # end
+
+        for ma in range(len(cards)):
+            obj = cards[ma]
+            _a = obj.addtime
+
+            ind = searchv(_a, 'date')
+
+            if(ind == False):
+                res.append({
+                    "date": _a,
+                    "value": 1    
+                })
+            else:
+                res[ind]["value"] += 1 # end
+        # end
+
+        print(res)
+
         return None
     # end
     gamesPlayedStat = GraphQL.List(lambda: UserTypeStatType)
