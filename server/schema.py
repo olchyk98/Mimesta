@@ -51,9 +51,7 @@ class UserType(GraphQL.ObjectType):
         # end
 
         for ma in range(len(cards)):
-            obj = cards[ma]
-            _a = obj.addtime
-
+            _a = cards[ma].addtime
             ind = searchv(_a, 'date')
 
             if(ind == False):
@@ -62,8 +60,10 @@ class UserType(GraphQL.ObjectType):
                     "value": 1    
                 })
             else:
-                res[ind]["value"] += 1 # end
+                res[ind]["value"] += 1
+            # end
         # end
+
 
         print(res)
 
