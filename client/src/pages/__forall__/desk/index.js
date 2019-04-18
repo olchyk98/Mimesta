@@ -44,8 +44,12 @@ class Hero extends Component {
                             <Layer
                                 key={ ma }
                                 style={{
-                                    "transform": `translateY(${ -5 * ma }px)`,
-                                    "zIndex": a - ma
+                                    "transform": `
+                                        translateY(${ -10 * ma }px)
+                                        scale(${ 1 - ma * .05 })
+                                    `,
+                                    "zIndex": a - ma,
+                                    "opacity": `${ 1 - .25 * ma }`
                                 }}
                             />
                         );

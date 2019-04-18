@@ -313,7 +313,7 @@ class RootMutation(GraphQL.ObjectType):
             if(not uid): raise GraphQLError("No session")
 
             # Delete all linked cards
-            fetchDB('''DELETE FROM Cards WHERE deskud = $$%s$$''' % (id), False)
+            fetchDB('''DELETE FROM Cards WHERE deskid = $$%s$$''' % (id), False)
 
             # Delete desk
             return fetchDB('''DELETE FROM Desks WHERE id = $$%s$$ AND creatorid = $$%s$$ RETURNING *''' % (id, uid), 'S')
