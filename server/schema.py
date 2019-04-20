@@ -33,7 +33,7 @@ def countByField(arr, field, nma):
 
         if(nma == 'desks'): print(_a, ind)
 
-        if(ind == False): # 0 is falsy. TODO: Find a way to implement '===''
+        if(ind is False): # 0 is falsy. TODO: Find a way to implement '===''
             res.append({
                 "date": _a,
                 "value": 1    
