@@ -63,7 +63,7 @@ fetchDB("""
         playerid bigserial NOT NULL,
         losedCards int NOT NULL,
         clearCards int NOT NULL,
-        date timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        playdate timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
         maxStrike int NOT NULL,
         deskid bigserial NOT NULL,
         cardsInt int NOT NULL

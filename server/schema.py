@@ -1,12 +1,49 @@
 import graphene as GraphQL
+from graphene.types.resolver import dict_resolver
 from graphql import GraphQLError
 from flask import session
 from db_fetch import fetch as fetchDB
 
+# 123
 class UserTypeStatType(GraphQL.ObjectType):
+    class Meta:
+        default_resolver = dict_resolver
+    # end
+
     date = GraphQL.DateTime()
     value = GraphQL.String()
 # end
+
+def countByField(arr, field):
+    res = []
+
+    def searchv(value, field): # fin - field index
+        for ma in range(len(res)):
+            if(res[ma][field] == value):
+                return ma
+                break;
+            # end
+        # end
+        return False
+    # end
+
+    for ma in range(len(arr)):
+        _a = getattr(arr[ma], field)
+        ind = searchv(_a, 'date')
+
+        if(ind == False):
+            res.append({
+                "date": _a,
+                "value": 1    
+            })
+        else:
+            res[ind]["value"] += 1
+        # end
+    # end
+
+    return res
+# end
+# 123
 
 class UserType(GraphQL.ObjectType):
     id = GraphQL.ID()
@@ -24,11 +61,11 @@ class UserType(GraphQL.ObjectType):
     # end
     playedSecondsMonth = GraphQL.Int()
     def resolve_playedSecondsMonth(self, info):
-        return fetchDB('''SELECT SUM(seconds) FROM DeskGames WHERE playerid = $$%s$$ AND (DATE_PART('month', NOW()) - DATE_PART('month', date)) <= 1''' % (self.id), 'S').sum or 0
+        return fetchDB('''SELECT SUM(seconds) FROM DeskGames WHERE playerid = $$%s$$ AND (DATE_PART('month', NOW()) - DATE_PART('month', playdate)) <= 1''' % (self.id), 'S').sum or 0
     # end
     learnedCardsMonth = GraphQL.Int()
     def resolve_learnedCardsMonth(self, info):
-        return fetchDB('''SELECT SUM(cardsInt) FROM DeskGames WHERE playerid = $$%s$$ AND (DATE_PART('month', NOW()) - DATE_PART('month', date)) <= 1''' % (self.id), 'S').sum or 0
+        return fetchDB('''SELECT SUM(cardsInt) FROM DeskGames WHERE playerid = $$%s$$ AND (DATE_PART('month', NOW()) - DATE_PART('month', playdate)) <= 1''' % (self.id), 'S').sum or 0
     # end
     availableCards = GraphQL.List(lambda: CardType, limit = GraphQL.Int())
     def resolve_availableCards(self, info, limit):
@@ -37,46 +74,19 @@ class UserType(GraphQL.ObjectType):
     addedCardsStat = GraphQL.List(lambda: UserTypeStatType)
     def resolve_addedCardsStat(self, info):
         cards = fetchDB('''SELECT id, addtime::timestamp::date FROM Cards WHERE creatorid = $$%s$$''' % (self.id), 'M')
-
-        res = []
-
-        def searchv(value, field): # fin - field index
-            for ma in range(len(res)):
-                if(res[ma][field] == value):
-                    return ma
-                    break;
-                # end
-            # end
-            return False
-        # end
-
-        for ma in range(len(cards)):
-            _a = cards[ma].addtime
-            ind = searchv(_a, 'date')
-
-            if(ind == False):
-                res.append({
-                    "date": _a,
-                    "value": 1    
-                })
-            else:
-                res[ind]["value"] += 1
-            # end
-        # end
-
-
-        print(res)
-
-        return None
+        return countByField(cards, 'addtime')
     # end
     gamesPlayedStat = GraphQL.List(lambda: UserTypeStatType)
     def resolve_gamesPlayedStat(self, info):
-        return None
+        cards = fetchDB('''SELECT id, playdate::timestamp::date FROM DeskGames WHERE playerid = $$%s$$''' % (self.id), 'M')
+        return countByField(cards, 'playdate')
     # end
     createdDesksStat = GraphQL.List(lambda: UserTypeStatType)
     def resolve_createdDesksStat(self, info):
-        return None
+        cards = fetchDB('''SELECT id, createtime::timestamp::date FROM Desks WHERE creatorid = $$%s$$''' % (self.id), 'M')
+        return countByField(cards, 'createtime')
     # end
+    # playedMinutesStat #-?
 # end
 
 class DeskType(GraphQL.ObjectType):

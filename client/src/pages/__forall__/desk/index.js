@@ -38,7 +38,8 @@ class Hero extends Component {
                                         { `${ this.props.cards } card${ (this.props.cards !== 1) ? "s" : "" }` }
                                     </span>
                                 </Layer>
-                            ];
+                            ],
+                            c = .4; // animation
 
                         for(let ma = 1; ma <= a; ma++) b.push(
                             <Layer
@@ -49,7 +50,9 @@ class Hero extends Component {
                                         scale(${ 1 - ma * .05 })
                                     `,
                                     "zIndex": a - ma,
-                                    "opacity": `${ 1 - .25 * ma }`
+                                    "opacity": `${ 1 - .25 * ma }`,
+                                    "animationDelay": `${ c / 2 * (ma - 1) }s`,
+                                    "animationDuration": `${ c }s`
                                 }}
                             />
                         );

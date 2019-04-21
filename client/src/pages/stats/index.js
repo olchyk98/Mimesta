@@ -18,8 +18,6 @@ import { gql } from 'apollo-boost';
 
 import placeholder from '../__forall__/placeholder.gif';
 
-const data = Array(25).fill().map(Math.random);
-
 class Graph extends Component {
 	constructor(props) {
 		super(props);
@@ -64,14 +62,16 @@ class Graph extends Component {
 					ariaLabel="This is a Sparkline of..."
 					width={ this.state.dims.width }
 					height={ this.state.dims.height }
-					data={ data }
+					data={ this.props.sdata.map(io => +io.value) }
 					onMouseMove={({ index: a, event: { nativeEvent: { offsetX: b, offsetY: c } }, target: d }) => {
+						const val = this.props.sdata[a];
+
 						this.setState(() => ({
 							activeData: {
 								tx: b / this.state.dims.width * 100,
 								ty: c / this.state.dims.height * 100,
 								index: a,
-								value: data[a]
+								value: `${ val.value } (${ val.date })`
 							}
 						}));
 					}}>
@@ -103,7 +103,8 @@ class Graph extends Component {
 }
 
 Graph.propTypes = {
-	title: PropTypes.string.isRequired
+	title: PropTypes.string.isRequired,
+	sdata: PropTypes.array.isRequired
 }
 
 class Hero extends Component {
@@ -169,6 +170,10 @@ class Hero extends Component {
 		}).then(({ data: { user: a } }) => {
 			if(!a) return castError();
 
+			// TODO: Fix nostack objects (duplication)
+			// TODO (maybe): Fill 'empty' days
+			console.log(a);
+
 			this.setState(() => ({
 				statsData: {
 					addedCards: a.addedCardsStat,
@@ -191,12 +196,15 @@ class Hero extends Component {
 						<>
 							<Graph
 								title="Added cards"
+								sdata={ this.state.statsData.addedCards }
 							/>
 							<Graph
 								title="Games"
+								sdata={ this.state.statsData.gamesPlayed }
 							/>
 							<Graph
 								title="Created desks"
+								sdata={ this.state.statsData.createdDesks }
 							/>
 						</>
 					) : (

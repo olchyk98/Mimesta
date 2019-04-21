@@ -25,6 +25,24 @@
     width:100%;
     border-radius:5px;
     border:1px solid rgba(0, 0, 0, .02);
+    transition:.25s;
+}
+
+.gle-pack:hover > .gle-pack-layer:not(:first-child) {
+    animation-name:gle-pack-layer-wave-eff;
+    animation-timing-function:ease-in-out;
+}
+
+@keyframes gle-pack-layer-wave-eff {
+    0% {
+        top:0;
+    }
+    50% {
+        top:-20px;
+    }
+    100% {
+        top:0;
+    }
 }
 
 .gle-pack-layer:first-child {
