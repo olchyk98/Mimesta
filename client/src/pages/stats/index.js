@@ -170,6 +170,7 @@ class Hero extends Component {
 		}).then(({ data: { user: a } }) => {
 			if(!a) return castError();
 
+
 			// TODO: Fix nostack objects (duplication)
 			// TODO (maybe): Fill 'empty' days
 			console.log(a);
