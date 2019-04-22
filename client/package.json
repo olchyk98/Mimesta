@@ -12,6 +12,7 @@
     "apollo-cache-inmemory": "^1.5.1",
     "apollo-link-error": "^1.1.10",
     "apollo-upload-client": "^10.0.0",
+    "graphql": "^14.2.1",
     "react": "^16.8.6",
     "react-apollo": "^2.5.3",
     "react-dom": "^16.8.6",

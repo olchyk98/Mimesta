@@ -14,7 +14,7 @@ class UserTypeStatType(GraphQL.ObjectType):
     value = GraphQL.String()
 # end
 
-def countByField(arr, field, nma):
+def countByField(arr, field):
     res = []
 
     def searchv(value, field): # fin - field index
@@ -31,9 +31,7 @@ def countByField(arr, field, nma):
         _a = getattr(arr[ma], field)
         ind = searchv(_a, 'date')
 
-        if(nma == 'desks'): print(_a, ind)
-
-        if(ind is False): # 0 is falsy. TODO: Find a way to implement '===''
+        if(ind is False):
             res.append({
                 "date": _a,
                 "value": 1    
@@ -76,17 +74,17 @@ class UserType(GraphQL.ObjectType):
     addedCardsStat = GraphQL.List(lambda: UserTypeStatType)
     def resolve_addedCardsStat(self, info):
         cards = fetchDB('''SELECT id, addtime::timestamp::date FROM Cards WHERE creatorid = $$%s$$''' % (self.id), 'M')
-        return countByField(cards, 'addtime', 'cards')
+        return countByField(cards, 'addtime')
     # end
     gamesPlayedStat = GraphQL.List(lambda: UserTypeStatType)
     def resolve_gamesPlayedStat(self, info):
         cards = fetchDB('''SELECT id, playdate::timestamp::date FROM DeskGames WHERE playerid = $$%s$$''' % (self.id), 'M')
-        return countByField(cards, 'playdate', 'games')
+        return countByField(cards, 'playdate')
     # end
     createdDesksStat = GraphQL.List(lambda: UserTypeStatType)
     def resolve_createdDesksStat(self, info):
         cards = fetchDB('''SELECT id, createtime::timestamp::date FROM Desks WHERE creatorid = $$%s$$''' % (self.id), 'M')
-        return countByField(cards, 'createtime', 'desks')
+        return countByField(cards, 'createtime')
     # end
     # playedMinutesStat #-?
 # end

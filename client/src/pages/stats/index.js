@@ -36,6 +36,20 @@ class Graph extends Component {
 		}
 	}
 
+	getEventArray(arr) {
+		// This function helps when sdata array contains
+		// only one object (in this case graph won't show anything).
+
+		if(arr.length !== 1) {
+			return arr;
+		}
+
+		return [
+			{ value: 0 },
+			...arr
+		];
+	}
+
 	render() {
 		return(
 			<section
@@ -62,16 +76,16 @@ class Graph extends Component {
 					ariaLabel="This is a Sparkline of..."
 					width={ this.state.dims.width }
 					height={ this.state.dims.height }
-					data={ this.props.sdata.map(io => +io.value) }
+					data={ this.getEventArray(this.props.sdata).map(io => +io.value) }
 					onMouseMove={({ index: a, event: { nativeEvent: { offsetX: b, offsetY: c } }, target: d }) => {
-						const val = this.props.sdata[a];
+						const val = this.getEventArray(this.props.sdata)[a];
 
 						this.setState(() => ({
 							activeData: {
 								tx: b / this.state.dims.width * 100,
 								ty: c / this.state.dims.height * 100,
 								index: a,
-								value: `${ val.value } (${ val.date })`
+								value: `${ val.value }${ (val.date) ? `(${ val.date })` : "" }`
 							}
 						}));
 					}}>
@@ -80,7 +94,7 @@ class Graph extends Component {
 						stroke="#4dadf7"
 					/>
 					<PointSeries
-						points={[ (this.state.activeData.index || null) ]}
+						points={[ (Number.isInteger(this.state.activeData.index)) ? this.state.activeData.index : null ]}
 						fill="#228ae6"
 						stroke="white"
 						renderLabel={ () => null }
@@ -89,7 +103,7 @@ class Graph extends Component {
 				<span
 					className={constructClassName({
 						"rn-stats-graph-tooltip": true,
-						"visible": this.state.activeData.index
+						"visible": Number.isInteger(this.state.activeData.index)
 					})}
 					style={{
 						left: this.state.activeData.tx + "%",
@@ -169,11 +183,6 @@ class Hero extends Component {
 			`
 		}).then(({ data: { user: a } }) => {
 			if(!a) return castError();
-
-
-			// TODO: Fix nostack objects (duplication)
-			// TODO (maybe): Fill 'empty' days
-			console.log(a);
 
 			this.setState(() => ({
 				statsData: {
