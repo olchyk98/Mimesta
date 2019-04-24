@@ -412,43 +412,33 @@ class RootMutation(GraphQL.ObjectType):
 
         Output = UserType
 
-        def mutate(self, info, avatar, name, email, oldPassword, password):
+        # XXX
+        def mutate(self, info, avatar = None, name = None, email = None, oldPassword = None, password = None):
             # Check if user has an active session
             uid = session.get('userid', None)
             if(not uid): raise GraphQLError("No session")
 
-            inres = None # >> string
+            inres = ""
 
-            # XXX: As I understand I'm not too good in python.
-            # I'm sure there is a better solution
-            def constrct(field, value = None):
-                if(inres): inres += ','
-                else: inres += "SET"
+            fields = [{ "field": "name", "value": name }, { "field": "email", "value": email }]
+            if(oldPassword and password): fields.append({ "field": "password", "value": password })
 
-                if(value): inres = '%s = %s' % (field, value)
-                else: inres = '%s = %s' % (field, field)
+            for ma in fields:
+                if(inres): inres += ', '
+                inres += '%s = ' % ma['field']
+                if(ma['value']): inres += "$$%s$$" % ma['value']
+                else: inres += ma['field']
             # end
 
-            if(oldPassword and password): # should be in the beginning
-                inres = 'AND password = %s '
-            # end
+            if(not inres): return None
 
-            # Receive avatar
-            constrct(avatar)
+            print('''
+                UPDATE Users SET %s WHERE id = $$%s$$%s RETURNING *
+            ''' % (inres, uid, (oldPassword and password and ' AND password = $$%s$$' % oldPassword) or ''))
 
-            # Receive other public fields
-            constrct(name)
-            constrct(email)
-
-            # Receive password
-            constrct(password)
-
-            print(inres)
-
-            return None
-            # return fetchDB('''
-            #     UPDATE Users WHERE id = $$%s$$ %s RETURNING *
-            # ''' % (uid, inres), 'S')
+            return fetchDB('''
+                UPDATE Users SET %s WHERE id = $$%s$$%s RETURNING *
+            ''' % (inres, uid, (oldPassword and password and ' AND password = $$%s$$' % oldPassword) or ''), 'S')
         # end
     # end
 

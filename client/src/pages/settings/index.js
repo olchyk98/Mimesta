@@ -122,15 +122,15 @@ class Hero extends Component {
 
 		client.mutate({
 			mutation: gql`
-				mutation($avatar: Upload, name: String, email: String, oldPassword: String, password: String) {
-					changeProfileSettings(avatar: $avatar, name: $name, email: $email: oldPassword: $oldPassword: password: $password) {
-
+				mutation($avatar: Upload, $name: String, $email: String, $oldPassword: String, $password: String) {
+					changeProfileSettings(avatar: $avatar, name: $name, email: $email, oldPassword: $oldPassword, password: $password) {
+						id
 					}
 				}
 			`,
 			variables: { avatar, name, email, oldPassword, password }
 		}).then(({ data: { changeProfileSettings: a } }) => {
-			console.log(a);
+			console.log(a); // Check for two fields // avatar
 		}).catch(castError);
 	}
 
