@@ -8,5 +8,5 @@ Study more - think less. Memory cards can think instead of you.
 TODO:
 - [x] Settings
 - [x] Fix archive page
-- [ ] Add desk cont
+- [x] Add desk cont
 - [ ] Responsive design
