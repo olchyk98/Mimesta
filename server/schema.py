@@ -152,20 +152,6 @@ class DeskGameType(GraphQL.ObjectType):
 # end
 
 class RootQuery(GraphQL.ObjectType):
-    # --- DEVELOPMENT ---
-    desks = GraphQL.List(DeskType)
-    def resolve_desks(self, info):
-        return fetchDB('''SELECT * FROM Desks''', 'M')
-    # end
-    users = GraphQL.List(UserType)
-    def resolve_users(self, info):
-        return fetchDB('''SELECT * FROM Users''', 'M')
-    # end
-    cards = GraphQL.List(CardType)
-    def resolve_cards(self, info):
-        return fetchDB('''SELECT * FROM Cards''', 'M')
-    # end
-    # --- DEVELOPMENT ---
     user = GraphQL.Field(UserType)
     def resolve_user(self, info):
         uid = session.get('userid', None)

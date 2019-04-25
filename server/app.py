@@ -83,5 +83,5 @@ app.add_url_rule(
 
 # Allow to run this function using flask manager
 if(__name__ == '__main__'):
-    app.run(debug = True, port = 4000) # Run server with live reload.
+    app.run(debug = True, port = 4000) # Run server in debug mode.
 # end
