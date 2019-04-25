@@ -9,3 +9,4 @@ TODO:
 - [x] Settings
 - [x] Fix archive page
 - [ ] Add desk cont
+- [ ] Responsive design
