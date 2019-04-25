@@ -81,6 +81,8 @@
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
     justify-items: center;
+    max-width:100%;
+    overflow:hidden;
     align-items: center;
     grid-template-rows: 250px;
 }

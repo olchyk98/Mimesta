@@ -106,8 +106,56 @@ menu {
     text-align: center;
 }
 
+@media only screen and (max-width: 1150px) {
+    .rn-dashboard {
+        --paddinglr:20px!important;
+    }
+
+    .rn-dashboard-section {
+        justify-content:center!important;
+    }
+
+    .rn-dashboard-stats-item {
+        margin:10px!important;
+    }
+
+    .gle-pack {
+        margin:25px!important;
+    }
+}
+
+@media only screen and (max-width: 700px) {
+    .rn-desk-cards,
+    .rn-archive-table {
+        overflow:scroll!important;
+    }
+
+    .rn-desk-cards-mat {
+        width:auto!important;
+    }
+
+    .rn-desk-cards-mat td {
+        padding:0 20px!important;
+        white-space:nowrap!important;
+    }
+}
+
 @media only screen and (max-width: 500px) {
     .rn-settings-fields {
         grid-template-columns:1fr!important;
+    }
+
+    .rn-settings-account-avatar {
+        --size:50px!important;
+    }
+
+    .rn-settings-account-avatar-change {
+        --size:25px!important;
+    }
+}
+
+@media only screen and (max-width: 420px) {
+    .gle-pack {
+        margin:0!important;
     }
 }

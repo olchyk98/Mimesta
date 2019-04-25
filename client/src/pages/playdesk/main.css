@@ -88,14 +88,18 @@
     top:50%;
     left:50%;
     margin-right:50%;
+    width:100%;
     transform:translate(-50%, -50%);
 }
 
 .rn-playdesk-display-card {
     height:350px;
     width:600px;
+    max-width:calc(100% - 20px);
     position:relative;
     perspective:600px;
+    margin-left:auto;
+    margin-right:auto;
 }
 
 .rn-playdesk-display-card-side {

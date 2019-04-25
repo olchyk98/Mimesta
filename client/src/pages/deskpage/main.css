@@ -88,6 +88,9 @@
     align-items: center;
     color: white;
     font-weight: 200;
+    max-width:100%;
+    flex-wrap:wrap;
+    justify-content:center;
     font-family: "Lato";
 }
 

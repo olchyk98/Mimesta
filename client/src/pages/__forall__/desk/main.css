@@ -9,6 +9,7 @@
     position:relative;
     margin:100px;
     transition:.15s;
+    max-width:calc(100% - 50px);
     cursor:pointer;
 }
 
