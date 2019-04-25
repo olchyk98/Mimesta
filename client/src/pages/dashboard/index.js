@@ -185,7 +185,7 @@ class Hero extends Component {
                         learnedCardsMonth,
                         playedSecondsMonth,
                         addedCardsMonth,
-                        desks {
+                        availableDesks {
                             id,
                             name,
                             cardsInt
@@ -200,7 +200,7 @@ class Hero extends Component {
                 learnedCards: a.learnedCardsMonth,
                 addedCards: a.addedCardsMonth,
                 playedMinutes: Math.floor(a.playedSecondsMonth / 60),
-                desks: a.desks
+                desks: a.availableDesks
             }));
         }).catch(console.error);
     }

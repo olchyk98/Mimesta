@@ -61,6 +61,9 @@ class UserType(GraphQL.ObjectType):
     desks = GraphQL.List(lambda: DeskType)
     resolve_desks = lambda self, info: fetchDB('''SELECT * FROM Desks WHERE (creatorid = $$%s$$)''' % (self.id), 'M')
     # -
+    availableDesks = GraphQL.List(lambda: DeskType)
+    resolve_availableDesks = lambda self, info: fetchDB('''SELECT * FROM Desks WHERE $$%s$$ = ANY(ownersid::int[])''' % (self.id), 'M')
+    # -
     addedCardsMonth = GraphQL.Int()
     def resolve_addedCardsMonth(self, info):
         return fetchDB('''SELECT COUNT(id) FROM Cards WHERE creatorid = $$%s$$ AND (DATE_PART('month', NOW()) - DATE_PART('month', addtime)) <= 1''' % (self.id), 'S').count or 0
@@ -75,7 +78,7 @@ class UserType(GraphQL.ObjectType):
     # end
     availableCards = GraphQL.List(lambda: CardType, limit = GraphQL.Int())
     def resolve_availableCards(self, info, limit):
-        return fetchDB('''SELECT Cards.* FROM Cards, Desks WHERE Cards.deskid = Desks.id AND $${"%s"}$$ @> Desks.ownersid LIMIT %s''' % (self.id, limit), 'M')
+        return fetchDB('''SELECT Cards.* FROM Cards, Desks WHERE Cards.deskid = Desks.id AND $$%s$$ = ANY(Desks.ownersid::int[]) LIMIT %s''' % (self.id, limit), 'M')
     # end
     addedCardsStat = GraphQL.List(lambda: UserTypeStatType)
     def resolve_addedCardsStat(self, info):
@@ -111,7 +114,7 @@ class DeskType(GraphQL.ObjectType):
     resolve_ownersInt = lambda self, info: len(self.ownersid)
     # -
     owners = GraphQL.List(lambda: UserType, search = GraphQL.String())
-    resolve_owners = lambda self, info, search = None: fetchDB('''SELECT * FROM Users WHERE id IN (%s)%s''' % (''.join(self.ownersid), (search and ' AND (name LIKE $$%%%s%%$$ OR email LIKE $$%%%s%%$$)' % (search, search)) or ''), 'M')
+    resolve_owners = lambda self, info, search = None: fetchDB('''SELECT * FROM Users WHERE id IN (%s)%s''' % (','.join(self.ownersid), (search and ' AND (name LIKE $$%%%s%%$$ OR email LIKE $$%%%s%%$$)' % (search, search)) or ''), 'M')
     # -
     creator = GraphQL.Field(UserType)
     resolve_creator = lambda self, info: fetchDB('''SELECT * FROM Users WHERE id = $$%s$$ ''' % (self.creatorid), 'S')
@@ -178,7 +181,7 @@ class RootQuery(GraphQL.ObjectType):
         uid = session.get('userid', None)
 
         if(uid):
-            return fetchDB('''SELECT * FROM Desks WHERE id = $$%s$$ AND $${"%s"}$$ @> ownersid''' % (id, uid), 'S')
+            return fetchDB('''SELECT * FROM Desks WHERE id = $$%s$$ AND $$%s$$ = ANY(ownersid::int[])''' % (id, uid), 'S')
         else:
             return None
         # end
@@ -190,7 +193,7 @@ class RootQuery(GraphQL.ObjectType):
         if(not uid): raise GraphQLError("No session")
 
         return fetchDB('''
-            SELECT Cards.* FROM Cards, Desks WHERE $${"%s"}$$ @> Desks.ownersid
+            SELECT Cards.* FROM Cards, Desks WHERE $$%s$$ = ANY(Desks.ownersid::int[])
             AND (fronttext LIKE $$%%%s%%$$ OR backtext LIKE $$%%%s%%$$)
         ''' % (uid, query, query), 'M')
     # end
@@ -282,7 +285,7 @@ class RootMutation(GraphQL.ObjectType):
             uid = session.get('userid', None)
             if(not uid): raise GraphQLError("No session")
 
-            return fetchDB('''UPDATE Desks SET name = $$%s$$ WHERE id = $$%s$$ AND $${"%s"}$$ @> ownersid RETURNING *''' % (name, uid, id), 'S')
+            return fetchDB('''UPDATE Desks SET name = $$%s$$ WHERE id = $$%s$$ AND $$%s$$ = ANY(ownersid::int[]) RETURNING *''' % (name, uid, id), 'S')
         # end
     # end
 
@@ -301,7 +304,7 @@ class RootMutation(GraphQL.ObjectType):
             if(not uid): raise GraphQLError("No session")
 
             # Check if user has a permission to modify this desk
-            if(not fetchDB('''SELECT id FROM Desks WHERE id = $$%s$$ AND $${"%s"}$$ @> ownersid''' % (deskID, uid), 'S')):
+            if(not fetchDB('''SELECT id FROM Desks WHERE id = $$%s$$ AND $$%s$$ = ANY(ownersid::int[])''' % (deskID, uid), 'S')):
                 return None
             # end
             
@@ -329,7 +332,7 @@ class RootMutation(GraphQL.ObjectType):
             if(not uid): raise GraphQLError("No session")
 
             # Check if user has a permission to modify the parent desk
-            if(not fetchDB('''SELECT id FROM Desks WHERE id = $$%s$$ AND $${"%s"}$$ @> ownersid''' % (deskID, uid), 'S')):
+            if(not fetchDB('''SELECT id FROM Desks WHERE id = $$%s$$ AND $$%s$$ = ANY(ownersid::int[])''' % (deskID, uid), 'S')):
                 return None
             # end
 
@@ -357,7 +360,7 @@ class RootMutation(GraphQL.ObjectType):
             if(not uid): raise GraphQLError("No session")
 
             # Check if user has a permission to modify the parent desk
-            if(not fetchDB('''SELECT id FROM Desks WHERE id = $$%s$$ AND $${"%s"}$$ @> ownersid''' % (deskID, uid), 'S')):
+            if(not fetchDB('''SELECT id FROM Desks WHERE id = $$%s$$ AND $$%s$$ = ANY(ownersid::int[])''' % (deskID, uid), 'S')):
                 return None
             # end
 
@@ -404,7 +407,7 @@ class RootMutation(GraphQL.ObjectType):
             if(not uid): raise GraphQLError("No session")
 
             # Check if user is a member of this desk
-            if(not fetchDB('''SELECT id FROM Desks WHERE id = $$%s$$ AND $${"%s"}$$ @> ownersid''' % (deskID, uid), 'S')):
+            if(not fetchDB('''SELECT id FROM Desks WHERE id = $$%s$$ AND $$%s$$ = ANY(ownersid::int[])''' % (deskID, uid), 'S')):
                 return None
             # end
 
@@ -478,11 +481,48 @@ class RootMutation(GraphQL.ObjectType):
 
             if(not inres): return None
 
-            resa = fetchDB('''
+            return fetchDB('''
                 UPDATE Users SET %s WHERE id = $$%s$$%s RETURNING *
             ''' % (inres, uid, (oldPassword and password and ' AND password = $$%s$$' % oldPassword) or ''), 'S')
+        # end
+    # end
 
-            return resa
+    class AddUserToDeskMutation(GraphQL.Mutation):
+        class Arguments:
+            deskID = GraphQL.NonNull(GraphQL.ID)
+            targetID = GraphQL.NonNull(GraphQL.ID)
+        # end
+
+        Output = UserType
+
+        def mutate(self, info, deskID, targetID):
+            # Check if user has an active session
+            uid = session.get('userid', None)
+            if(not uid): raise GraphQLError("No session")
+
+            # ...
+            fetchDB('''UPDATE Desks SET ownersid = array_cat(ownersid, $${"%s"}$$) WHERE id = %s RETURNING *''' % (targetID, deskID), 'S')
+
+            # Return added user
+            return fetchDB('''SELECT * FROM Users WHERE id = %s''' % targetID, 'S')
+        # end
+    # end
+
+    class RemoveUserFromDeskMutation(GraphQL.Mutation):
+        class Arguments:
+            deskID = GraphQL.NonNull(GraphQL.ID)
+            targetID = GraphQL.NonNull(GraphQL.ID)
+        # end
+
+        Output = DeskType
+
+        def mutate(self, info, deskID, targetID):
+            # Check if user has an active session
+            uid = session.get('userid', None)
+            if(not uid): raise GraphQLError("No session")
+
+            # ...
+            return fetchDB('''UPDATE Desks SET ownersid = array_remove(ownersid, '%s') WHERE id = %s RETURNING *''' % (targetID, deskID), 'S')
         # end
     # end
 
@@ -496,6 +536,8 @@ class RootMutation(GraphQL.ObjectType):
     deleteDesk = DeleteDeskMutation.Field()
     playDesk = PlayDeskMutation.Field()
     changeProfileSettings = ChangeProfileSettingsMutation.Field()
+    addUserToDesk = AddUserToDeskMutation.Field()
+    removeUserFromDesk = RemoveUserFromDeskMutation.Field()
 # end
 
 schema = GraphQL.Schema(query = RootQuery, mutation = RootMutation, auto_camelcase = False)

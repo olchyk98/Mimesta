@@ -237,7 +237,7 @@ class MembersModalItem extends PureComponent {
                             </div>
                             {
                                 (!this.props.canDelete && !this.props.canAdd) ? null : (
-                                    <div className={constructClassName({
+                                    <div onClick={ (this.props.canDelete) ? this.props.onDelete : (this.props.canAdd) ? this.props.onAdd : null } className={constructClassName({
                                         "rn-desk-membersmod-plist-btn": true,
                                         "remove": this.props.canDelete,
                                         "add": this.props.canAdd
@@ -268,7 +268,7 @@ class MembersModal extends Component { // Infinite scroll
         this.searchMatRef = React.createRef();
 
         this.clientID = JSON.parse(cookieControl.get("userdata")).id;
-        this.peopleFields = `
+        this.userFields = `
             name,
             avatar
         `;
@@ -286,7 +286,8 @@ class MembersModal extends Component { // Infinite scroll
     loadMembers = () => {
         if(!this.props.deskid) return this.props.onClose();
 
-        const castError = () => (
+        const castError = (err) => {
+            if(err) console.error(err);
             this.props.castInfo({
                 iconStyle: "error",
                 icon: faBomb,
@@ -298,7 +299,7 @@ class MembersModal extends Component { // Infinite scroll
                     }
                 ]
             })
-        );
+        }
 
         client.query({
             query: gql`
@@ -307,7 +308,7 @@ class MembersModal extends Component { // Infinite scroll
                         id,
                         owners {
                             id,
-                            ${ this.peopleFields }
+                            ${ this.userFields }
                         }
                     }
                 }
@@ -338,7 +339,7 @@ class MembersModal extends Component { // Infinite scroll
                                 id,
                                 owners(search: $query) {
                                     id,
-                                    ${ this.peopleFields }
+                                    ${ this.userFields }
                                 }
                             }
                         }
@@ -367,7 +368,7 @@ class MembersModal extends Component { // Infinite scroll
                         query($query: String!, $deskID: ID!) {
                             searchPeople(query: $query, exceptDeskID: $deskID) {
                                 id,
-                                ${ this.peopleFields }
+                                ${ this.userFields }
                             }
                         }
                     `,
@@ -401,6 +402,84 @@ class MembersModal extends Component { // Infinite scroll
         }
 
         return [];
+    }
+
+    addToDesk = targetID => {
+        this.setState(({ membersQ: a }) => ({ membersQ: a.filter(io => io.id !== targetID) }));
+
+        const castError = (err) => {
+            if(err) console.error(err);
+            this.props.castInfo({
+                iconStyle: "error",
+                icon: faBomb,
+                text: "Ooh. We couldn't add this user to the desk. Please, try again.",
+                buttons: [
+                    {
+                        text: "Close",
+                        onClick: () => null // modal closes automatically
+                    }
+                ]
+            })
+        }
+
+        client.mutate({
+            mutation: gql`
+                mutation($deskID: ID!, $targetID: ID!) {
+                    addUserToDesk(deskID: $deskID, targetID: $targetID) {
+                        id,
+                        ${ this.userFields }
+                    }
+                }
+            `,
+            variables: {
+                deskID: this.props.deskid,
+                targetID
+            }
+        }).then(({ data: { addUserToDesk: a } }) => {
+            if(!a) return castError();
+
+            this.setState(({ members: _a }) => ({
+                members: [
+                    a,
+                    ..._a
+                ]
+            }));
+        }).catch(castError);
+    }
+
+    removeFromDesk = targetID => {
+        this.setState(({ members: a }) => ({ members: a.filter(io => io.id !== targetID) }));
+
+        const castError = (err) => {
+            if(err) console.error(err);
+            this.props.castInfo({
+                iconStyle: "error",
+                icon: faBomb,
+                text: "Ooh. We couldn't remove this user from the desk. Please, try again.",
+                buttons: [
+                    {
+                        text: "Close",
+                        onClick: () => null // modal closes automatically
+                    }
+                ]
+            })
+        }
+
+        client.mutate({
+            mutation: gql`
+                mutation($deskID: ID!, $targetID: ID!) {
+                    removeUserFromDesk(deskID: $deskID, targetID: $targetID) {
+                        id
+                    }
+                }
+            `,
+            variables: {
+                deskID: this.props.deskid,
+                targetID
+            }
+        }).then(({ data: { removeUserFromDesk: a } }) => {
+            if(!a) return castError();
+        }).catch(castError);
     }
 
     render() {
@@ -449,6 +528,8 @@ class MembersModal extends Component { // Infinite scroll
                                                 avatar={ avatar }
                                                 canDelete={ this.state.searchMode === "LOCAL" && this.props.deskcreatorid === this.clientID && this.clientID !== id }
                                                 canAdd={ this.state.searchMode === "GLOBAL" && this.props.deskcreatorid === this.clientID && this.clientID !== id }
+                                                onAdd={ () => this.addToDesk(id) }
+                                                onDelete={ () => this.removeFromDesk(id) }
                                             />
                                         ))
                                     }
