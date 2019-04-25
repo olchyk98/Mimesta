@@ -4,7 +4,6 @@ import './main.css';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
     faBox,
-    faUserFriends,
     faCogs,
     faChartLine,
     faColumns,
@@ -76,12 +75,6 @@ class Hero extends Component {
                             moveTo: links["ARCHIVE_PAGE"].absolute
                         },
                         {
-                            icon: faUserFriends,
-                            url: null,
-                            title: "Friends",
-                            moveTo: '/'
-                        },
-                        {
                             icon: faChartLine,
                             url: null,
                             title: "Statistics",
@@ -91,7 +84,7 @@ class Hero extends Component {
                             icon: faCogs,
                             url: null,
                             title: "Settings",
-                            moveTo: '/'
+                            moveTo: links["SETTINGS_PAGE"].absolute
                         },
                         {
                             icon: faDungeon,

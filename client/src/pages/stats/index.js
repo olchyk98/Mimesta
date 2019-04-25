@@ -183,7 +183,6 @@ class Hero extends Component {
 			`
 		}).then(({ data: { user: a } }) => {
 			if(!a) return castError();
-			
 
 			this.setState(() => ({
 				statsData: {

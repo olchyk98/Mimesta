@@ -1,0 +1,60 @@
+.rn-settings-container {
+	display:flex;
+	flex-direction:column;
+	align-items:center;
+	height:auto;
+	width:600px;
+	margin-left:auto;
+	margin-right:auto;
+	max-width:calc(100% - 15px);
+	position:relative;
+	margin-top:10px;
+}
+
+.rn-settings-account {
+	display:flex;
+	align-items:center;
+	position:relative;
+	width:100%;
+}
+
+.rn-settings-account > * {
+	margin:0 10px;
+}
+
+.rn-settings-account-avatar {
+	--size:90px;
+
+	height:var(--size);
+	width:var(--size);
+	border-radius:50%;
+	overflow:hidden;
+	position:relative;
+}
+
+.rn-settings-account-avatar > img {
+	height:100%;
+	width:100%;
+	object-fit:cover;
+	object-position:center;
+}
+
+.rn-settings-account-info {
+	display:flex;
+	flex-direction:column;
+}
+
+.rn-settings-account-info > * {
+	margin:2.5px 0;
+}
+
+.rn-settings-account-info-name {
+	font-size:1em;
+	font-family:"Lato";
+}
+
+.rn-settings-account-info-city {
+	color:rgba(0, 0, 0, .75);
+	font-weight:200;
+	font-family:"Quicksand;"
+}

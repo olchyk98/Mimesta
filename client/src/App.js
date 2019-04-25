@@ -13,6 +13,7 @@ import DeskP from './pages/deskpage';
 import PlayDesk from './pages/playdesk';
 import Archive from './pages/archive';
 import Statistic from './pages/stats';
+import Settings from './pages/settings'
 
 // Stuff
 import Nav from './pages/__forall__/nav';
@@ -84,6 +85,13 @@ class App extends Component {
                                                     path={ links["STATISTIC_PAGE"].route }
                                                     condition={ !!this.clientID }
                                                     component={ Statistic }
+                                                    redirect={ Authentication }
+                                                    exact
+                                                />
+                                                <PrivateRoute
+                                                    path={ links["SETTINGS_PAGE"].route }
+                                                    condition={ !!this.clientID }
+                                                    component={ Settings }
                                                     redirect={ Authentication }
                                                     exact
                                                 />
