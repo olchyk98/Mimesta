@@ -252,10 +252,7 @@ class Hero extends Component {
                 limit: cardsLimit
             }
         }).then(({ data: { user: a } }) => {
-            if(!a || !a.availableCards) {
-                castError();
-                return;
-            }
+            if(!a || !a.availableCards) return castError();
 
             this.setState(() => ({
                 cards: a.availableCards,

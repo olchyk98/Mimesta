@@ -75,7 +75,7 @@ class UserType(GraphQL.ObjectType):
     # end
     availableCards = GraphQL.List(lambda: CardType, limit = GraphQL.Int())
     def resolve_availableCards(self, info, limit):
-        return fetchDB('''SELECT Cards.* FROM Cards, Desks WHERE $${"%s"}$$ @> Desks.ownersid LIMIT %s''' % (self.id, limit), 'M')
+        return fetchDB('''SELECT Cards.* FROM Cards, Desks WHERE Cards.deskid = Desks.id AND $${"%s"}$$ @> Desks.ownersid LIMIT %s''' % (self.id, limit), 'M')
     # end
     addedCardsStat = GraphQL.List(lambda: UserTypeStatType)
     def resolve_addedCardsStat(self, info):

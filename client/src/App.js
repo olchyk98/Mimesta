@@ -101,7 +101,7 @@ class App extends Component {
                                                         cookieControl.delete(["userdata"]);
                                                         window.location.href = links["DASHBOARD_PAGE"].absolute;
                                                         return(
-                                                            <pre>Processing request....</pre>
+                                                            <pre>Logging out....</pre>
                                                         );
                                                     }}
                                                     exact

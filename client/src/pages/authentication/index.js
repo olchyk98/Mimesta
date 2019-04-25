@@ -178,7 +178,8 @@ class RegisterForm extends Component {
         this.state = {
             isError: false,
             isSuccess: false,
-            registerInProcess: false
+            registerInProcess: false,
+            isEmailError: false
         }
 
         this.data = {
@@ -197,7 +198,8 @@ class RegisterForm extends Component {
         this.setState(() => ({
             registerInProcess: true,
             isError: false,
-            isSuccess: false
+            isSuccess: false,
+            isEmailError: false
         }));
 
         client.mutate({
@@ -217,7 +219,8 @@ class RegisterForm extends Component {
 
             if(!a) {
                 this.setState(() => ({
-                    isError: true
+                    isError: true,
+                    isEmailError: true
                 }));
                 return;
             }
@@ -232,6 +235,12 @@ class RegisterForm extends Component {
             }));
 
             window.location.reload();
+        }).catch((err) => {
+            console.error(err);
+            this.setState(() => ({
+                isEmailError: false,
+                isError: false
+            }));
         });
     }
 
@@ -244,7 +253,7 @@ class RegisterForm extends Component {
                     placeholder="Name"
                     type="text"
                     required={ true }
-                    isError={ this.state.isError }
+                    isError={ this.state.isError && !this.state.isEmailError }
                     isSuccess={ this.state.isSuccess }
                     isLoading={ this.state.registerInProcess }
                     onChange={ a => this.data.name = a }
@@ -264,7 +273,7 @@ class RegisterForm extends Component {
                     placeholder="Password"
                     type="password"
                     required={ true }
-                    isError={ this.state.isError }
+                    isError={ this.state.isError && !this.state.isEmailError }
                     isSuccess={ this.state.isSuccess }
                     isLoading={ this.state.registerInProcess }
                     onChange={ a => this.data.password = a }
