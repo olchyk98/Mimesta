@@ -209,7 +209,8 @@
 }
 
 .rn-desk-addcardmod_bg,
-.rn-desk-addcardmod {
+.rn-desk-addcardmod,
+.rn-desk-membersmod_bg {
     --trans: .25s;
 
     visibility: hidden;
@@ -218,13 +219,16 @@
 }
 
 .rn-desk-addcardmod_bg.active,
-.rn-desk-addcardmod_bg.active~.rn-desk-addcardmod {
+.rn-desk-addcardmod_bg.active~.rn-desk-addcardmod,
+.rn-desk-membersmod_bg.active,
+.rn-desk-membersmod_bg.active~.rn-desk-membersmod {
     opacity: 1;
     visibility: visible;
     transition: all var(--trans), visibility 0s;
 }
 
-.rn-desk-addcardmod_bg {
+.rn-desk-addcardmod_bg,
+.rn-desk-membersmod_bg {
     height: 100vh;
     width: 100vw;
     position: fixed;
@@ -341,4 +345,134 @@
 
 .rn-desk-addcardmod-card-target:empty:focus:before {
     opacity: .15;
+}
+
+.rn-desk-membersmod {
+    border-radius:2.5px;
+    background:white;
+    position:fixed;
+    top:50%;
+    left:50%;
+    margin-right:50%;
+    transform:translate(-50%, -50%);
+    box-shadow:0px 0px 15px -5px rgba(0, 0, 0, .25);
+    height:400px;
+    max-width:calc(100% - 15px);
+    width:400px;
+    z-index:2000;
+    display:flex;
+    flex-direction:column;
+    overflow:hidden;
+    align-items:stretch;
+}
+
+.rn-desk-membersmod-search {
+    --padding:17.5px;
+
+    height:45px;
+    border-bottom:1px solid rgba(0, 0, 0, .1);
+    display:flex;
+    align-items:stretch;
+    width:calc(100% - var(--padding) * 2);
+    padding:0 var(--padding);
+    flex-shrink:0;
+}
+
+.rn-desk-membersmod-search > input {
+    width:100%;
+    font-size:1rem;
+    position:relative;
+    bottom:-1px;
+    font-family:"Quicksand";
+    font-weight:400; 
+}
+
+.rn-desk-membersmod-search > div {
+    width:40px;
+    height:100%;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    flex-shrink:0;
+    color:rgba(0, 0, 0, .5);
+    font-size:1rem;
+}
+
+.rn-desk-membersmod-plist {
+    display:flex;
+    flex-direction:column;
+    overflow:scroll;
+    height:100%;
+}
+
+.rn-desk-membersmod-plist > * {
+    flex-shrink:0;
+}
+
+.rn-desk-membersmod-plist-item {
+    --paddinglr:15px;
+
+    cursor:pointer;
+    padding:10px var(--paddinglr);
+    width:calc(100% - var(--paddinglr) * 2);
+    display:flex;
+    align-items:center;
+}
+
+.rn-desk-membersmod-plist-item-icinc {
+    --size:45px;
+
+    height:var(--size);
+    width:var(--size);
+    border-radius:50%;
+    overflow:hidden;
+    margin-right:15px;
+}
+
+.rn-desk-membersmod-plist-item-icinc.icon {
+    background:rgba(0, 255, 0, .15);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    color:lime;
+    font-size:1.25rem;
+}
+
+.rn-desk-membersmod-plist-item-icinc > img {
+    object-fit:cover;
+    object-position:center;
+}
+
+.rn-desk-membersmod-plist-item span {
+    font-weight:500;
+    font-family:"Lato";
+    font-size:1.05rem;
+}
+
+.rn-desk-membersmod-plist-item:hover {
+    background:rgba(0, 0, 0, .01);
+}
+
+.rn-desk-membersmod-plist-info {
+    display:flex;
+    align-items:center;
+    width:100%;
+}
+
+.rn-desk-membersmod-plist-remove {
+    flex-shrink:0;
+    width:auto;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    cursor:pointer;
+    color:orange;
+    opacity:.65;
+    transition:.25s;
+}
+
+.rn-desk-membersmod-plist-remove:hover {
+    transform:scale(1.1);
+    opacity:1;
+    color:red;
 }

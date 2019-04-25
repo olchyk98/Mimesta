@@ -112,6 +112,9 @@ class DeskType(GraphQL.ObjectType):
     # -
     creator = GraphQL.Field(UserType)
     resolve_creator = lambda self, info: fetchDB('''SELECT * FROM Users WHERE id = $$%s$$ ''' % (self.creatorid), 'S')
+    # -
+    playedTimes = GraphQL.Int()
+    resolve_playedTimes = lambda self, info: fetchDB('''SELECT COUNT(id) FROM DeskGames WHERE deskid = $$%s$$''' % self.id, 'S').count
 # end
 
 class CardType(GraphQL.ObjectType):
