@@ -101,14 +101,17 @@ class DeskType(GraphQL.ObjectType):
     ownersid = GraphQL.List(GraphQL.ID)
     name = GraphQL.String()
     # -
-    cards = GraphQL.List(lambda: CardType)
-    resolve_cards = lambda self, info: fetchDB('''SELECT * FROM Cards WHERE (deskid = $$%s$$) ORDER BY updatetime DESC''' % (self.id), 'M')
+    cards = GraphQL.List(lambda: CardType, shuffleLimit = GraphQL.Int())
+    resolve_cards = lambda self, info, shuffleLimit = 'ALL': fetchDB('''SELECT * FROM Cards WHERE (deskid = $$%s$$) ORDER BY RANDOM() LIMIT %s''' % (self.id, shuffleLimit), 'M')
     # -
     cardsInt = GraphQL.Int()
     resolve_cardsInt = lambda self, info: fetchDB('''SELECT COUNT(id) FROM Cards WHERE (deskid = $$%s$$)''' % (self.id), 'S').count or 0
     # -
     ownersInt = GraphQL.Int()
     resolve_ownersInt = lambda self, info: len(self.ownersid)
+    # -
+    owners = GraphQL.List(lambda: UserType, search = GraphQL.String())
+    resolve_owners = lambda self, info, search = None: fetchDB('''SELECT * FROM Users WHERE id IN (%s)%s''' % (''.join(self.ownersid), (search and ' AND (name LIKE $$%%%s%%$$ OR email LIKE $$%%%s%%$$)' % (search, search)) or ''), 'M')
     # -
     creator = GraphQL.Field(UserType)
     resolve_creator = lambda self, info: fetchDB('''SELECT * FROM Users WHERE id = $$%s$$ ''' % (self.creatorid), 'S')
@@ -170,12 +173,12 @@ class RootQuery(GraphQL.ObjectType):
             return None
         # end
     # end
-    getDesk = GraphQL.Field(DeskType, id = GraphQL.NonNull(GraphQL.ID), shuffleLimit = GraphQL.Int())
-    def resolve_getDesk(self, info, id, shuffleLimit = 'ALL'):
+    getDesk = GraphQL.Field(DeskType, id = GraphQL.NonNull(GraphQL.ID))
+    def resolve_getDesk(self, info, id):
         uid = session.get('userid', None)
 
         if(uid):
-            return fetchDB('''SELECT * FROM Desks WHERE id = $$%s$$ AND $${"%s"}$$ @> ownersid ORDER BY RANDOM() LIMIT %s''' % (id, uid, shuffleLimit), 'S')
+            return fetchDB('''SELECT * FROM Desks WHERE id = $$%s$$ AND $${"%s"}$$ @> ownersid''' % (id, uid), 'S')
         else:
             return None
         # end
@@ -190,6 +193,19 @@ class RootQuery(GraphQL.ObjectType):
             SELECT Cards.* FROM Cards, Desks WHERE $${"%s"}$$ @> Desks.ownersid
             AND (fronttext LIKE $$%%%s%%$$ OR backtext LIKE $$%%%s%%$$)
         ''' % (uid, query, query), 'M')
+    # end
+    searchPeople = GraphQL.List(UserType, query = GraphQL.NonNull(GraphQL.String), exceptDeskID = GraphQL.ID())
+    def resolve_searchPeople(self, info, query, exceptDeskID):
+        # Check if user has an active session
+        uid = session.get('userid', None)
+        if(not uid): raise GraphQLError("No session")
+
+        # return users
+        if(not exceptDeskID):
+            return fetchDB('''SELECT * FROM Users WHERE name LIKE $$%%%s%%$$ OR email LIKE $$%%%s%%$$''' % (query, query), 'M')
+        else:
+            return fetchDB('''SELECT Users.* FROM Users, Desks WHERE Desks.id = $$%s$$ AND Users.id != ANY(Desks.ownersid::int[]) AND (Users.name LIKE $$%%%s%%$$ OR Users.email LIKE $$%%%s%%$$)''' % (exceptDeskID, query, query), 'M')
+        # end
     # end
 # end
 

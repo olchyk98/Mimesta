@@ -100,6 +100,10 @@
     font-size: .5rem;
 }
 
+.rn-desk-cover-info>span.tomodal {
+    cursor:pointer;
+}
+
 .rn-desk-cards {
     height: auto;
     width: 100%;
@@ -210,7 +214,8 @@
 
 .rn-desk-addcardmod_bg,
 .rn-desk-addcardmod,
-.rn-desk-membersmod_bg {
+.rn-desk-membersmod_bg,
+.rn-desk-membersmod {
     --trans: .25s;
 
     visibility: hidden;
@@ -425,22 +430,33 @@
     height:var(--size);
     width:var(--size);
     border-radius:50%;
+    position:relative;
     overflow:hidden;
     margin-right:15px;
 }
 
 .rn-desk-membersmod-plist-item-icinc.icon {
-    background:rgba(0, 255, 0, .15);
     display:flex;
     align-items:center;
     justify-content:center;
-    color:lime;
     font-size:1.25rem;
+}
+
+.rn-desk-membersmod-plist-item-icinc.icon.blue {
+    background:rgba(0, 0, 255, .15);
+    color:blue;
+}
+
+.rn-desk-membersmod-plist-item-icinc.icon.green {
+    background:rgba(0, 255, 0, .15);
+    color:lime;
 }
 
 .rn-desk-membersmod-plist-item-icinc > img {
     object-fit:cover;
     object-position:center;
+    height:100%;
+    width:100%;
 }
 
 .rn-desk-membersmod-plist-item span {
@@ -449,7 +465,7 @@
     font-size:1.05rem;
 }
 
-.rn-desk-membersmod-plist-item:hover {
+.rn-desk-membersmod-plist-item.icon:hover {
     background:rgba(0, 0, 0, .01);
 }
 
@@ -459,7 +475,7 @@
     width:100%;
 }
 
-.rn-desk-membersmod-plist-remove {
+.rn-desk-membersmod-plist-btn {
     flex-shrink:0;
     width:auto;
     display:flex;
@@ -471,8 +487,15 @@
     transition:.25s;
 }
 
-.rn-desk-membersmod-plist-remove:hover {
+.rn-desk-membersmod-plist-btn:hover {
     transform:scale(1.1);
     opacity:1;
+}
+
+.rn-desk-membersmod-plist-btn.remove:hover {
     color:red;
+}
+
+.rn-desk-membersmod-plist-btn.add:hover {
+    color:lime;
 }

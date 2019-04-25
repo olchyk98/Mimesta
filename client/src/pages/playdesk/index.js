@@ -193,9 +193,9 @@ class Hero extends Component {
         client.query({
             query: gql`
                 query($deskID: ID!, $shuffleLimit: Int) {
-                    getDesk(id: $deskID, shuffleLimit: $shuffleLimit) {
+                    getDesk(id: $deskID) {
                         id,
-                        cards {
+                        cards(shuffleLimit: $shuffleLimit) {
                             id,
                             fronttext,
                             backtext
