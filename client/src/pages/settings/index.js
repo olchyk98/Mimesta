@@ -1,28 +1,225 @@
-import React, { Component } from 'react';
+import React, { Component, PureComponent } from 'react';
+import PropTypes from 'prop-types';
 import './main.css';
 
-const image = "http://sf.co.ua/14/05/wallpaper-1533661.jpg";
+import { gql } from 'apollo-boost';
+import { connect } from 'react-redux';
 
-class Hero extends Component {
+import client from '../../apollo';
+import api from '../../api';
+
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faPen, faBomb } from '@fortawesome/free-solid-svg-icons';
+
+import LoadingIcon from '../__forall__/loadicon';
+
+class Input extends PureComponent {
+	static defaultProps = {
+		type: "text",
+		required: false,
+		disabled: false
+	}
+
 	render() {
 		return(
-			<div className="rn rn-settings">
-				<div className="rn-settings-container">
-					<section className="rn-settings-account">
-						<div className="rn-settings-account-avatar">
-							<img alt="user" src={ image } />
-						</div>
-						<div className="rn-settings-account-info">
-							<span className="rn-settings-account-info-name">Sara Tancredi</span>
-							<span className="rn-settings-account-info-city">New York, USA</span>
-						</div>
-					</section>
-					<section className="rn-settings-fields"></section>
-					{/* <button className="rn-settings-submit definp">Save Changes</button> */}
-				</div>
+			<div className="rn-settings-input">
+				<span className="rn-settings-input-title">{ this.props.title }</span>
+				<input
+					required={ this.props.required }
+					className="definp rn-settings-input-mat definp"
+					type={ this.props.type }
+					defaultValue={ this.props.defaultValue }
+					onChange={ ({ target: { value: a } }) => this.props.onChange(a) }
+					disabled={ this.props.disabled }
+				/>
 			</div>
 		);
 	}
 }
 
-export default Hero;
+Input.propTypes = {
+	title: PropTypes.string.isRequired,
+	type: PropTypes.string,
+	required: PropTypes.bool,
+	onChange: PropTypes.func.isRequired,
+	disabled: PropTypes.bool
+}
+
+class Hero extends Component {
+	constructor(props) {
+		super(props);
+
+		this.state = {
+			isLoading: true,
+			user: null,
+			isSubmitting: false,
+			updatedUser: {}
+		}
+	}
+
+	componentDidMount() {
+		this.loadUser();
+	}
+
+	loadUser = () => {
+		const castError = (err) => {
+			console.error(err);
+			this.props.goDialog({
+		        iconStyle: "error",
+		        icon: faBomb,
+		        text: "Oops. Something went wrong, please try later",
+		        buttons: [
+		            {
+		                text: "Close",
+		                onClick: () => null // modal closes automatically
+		            }
+		        ]
+		    });
+		}
+
+		client.query({
+			query: gql`
+				query {
+					user {
+						id,
+						email,
+						name,
+						avatar
+					}
+				}
+			`
+		}).then(({ data: { user: a } }) => {
+			if(!a) return castError();
+
+			this.setState(() => ({
+				isLoading: false,
+				user: a
+			}));
+		}).catch(castError);
+	}
+
+	submit = () => {
+		if(this.state.isLoading || this.state.isSubmitting) return;
+
+		this.setState(() => ({ isSubmitting: true }));
+		
+		const castError = (err) => {
+			console.error(err);
+			this.props.goDialog({
+		        iconStyle: "error",
+		        icon: faBomb,
+		        text: "We couldn't publish this data. Please, try later.",
+		        buttons: [
+		            {
+		                text: "Close",
+		                onClick: () => null // modal closes automatically
+		            }
+		        ]
+		    });
+		}
+
+		const { favatar: avatar, name, email, oldpass: oldPassword, newpass: password } = this.state.updatedUser;
+
+		client.mutate({
+			mutation: gql`
+				mutation($avatar: Upload, name: String, email: String, oldPassword: String, password: String) {
+					changeProfileSettings(avatar: $avatar, name: $name, email: $email: oldPassword: $oldPassword: password: $password) {
+
+					}
+				}
+			`,
+			variables: { avatar, name, email, oldPassword, password }
+		}).then(({ data: { changeProfileSettings: a } }) => {
+			console.log(a);
+		}).catch(castError);
+	}
+
+	getUserField = f => (this.state.user) ? this.state.updatedUser[f] || this.state.user[f] : null;
+	setUserField = (f, a) => this.setState(({ updatedUser: _a }) => ({ updatedUser: {..._a, [f]: a} }));
+
+	applyAvatar = f => {
+		URL.revokeObjectURL(this.state.updatedUser.avatar); // (delete)*(clear cache of) previous avatar preview url
+		this.setUserField('avatar', URL.createObjectURL(f)); // create visible avatar preview
+		this.setUserField('favatar', f); // save original file
+	}
+
+	render() {
+		if(this.state.isLoading) return(<LoadingIcon />);
+
+		return(
+			<div className="rn rn-settings">
+				{/* eslint-disable-next-line */}
+				<form className="rn-settings-container" onSubmit={ e => (e.preventDefault(), this.submit()) }>
+					<section className="rn-settings-account">
+						<div className="rn-settings-account-avatar">
+							<img alt="user" src={(() => {
+								const a = this.getUserField('avatar');
+
+								if(!this.state.updatedUser.avatar) return api.storage + a;
+								else return a;
+							})()} />
+							<input
+								type="file"
+								className="hidden"
+								accept="image/*"
+								id="rn-settings-account-avatar-change"
+								onChange={ ({ target: { files: [a] } }) => this.applyAvatar(a) }
+							/>
+							<label htmlFor="rn-settings-account-avatar-change" type="button" className="rn-settings-account-avatar-change definp">
+								<FontAwesomeIcon icon={ faPen } />
+							</label>
+						</div>
+						<div className="rn-settings-account-info">
+							<span className="rn-settings-account-info-name">{ this.getUserField('name') }</span>
+							<span className="rn-settings-account-info-city">{ this.getUserField('email') }</span>
+						</div>
+					</section>
+					<section className="rn-settings-fields">
+						<Input
+							title="Name"
+							required={ true }
+							defaultValue={ this.getUserField('name') }
+							onChange={ value => this.setUserField('name', value) }
+							disabled={ this.state.isSubmitting }
+						/>
+						<Input
+							title="Email"
+							type="email"
+							required={ true }
+							defaultValue={ this.getUserField('email') }
+							onChange={ value => this.setUserField('email', value) }
+							disabled={ this.state.isSubmitting }
+						/>
+						<Input
+							title="Old password"
+							type="password"
+							onChange={ value => this.setUserField('oldpass', value) }
+							disabled={ this.state.isSubmitting }
+						/>
+						<Input
+							title="New password"
+							type="password"
+							onChange={ value => this.setUserField('newpass', value) }
+							disabled={ this.state.isSubmitting }
+						/>
+					</section>
+					<button
+						type="submit"
+						className="rn-settings-submit definp"
+						disabled={ this.state.isSubmitting }>Save Changes</button>
+				</form>
+			</div>
+		);
+	}
+}
+
+const mapStateToProps = () => ({});
+
+const mapActionsToProps = {
+    goDialog: payload => ({ type: 'SHOW_DIALOG_MODAL', payload })
+}
+
+export default connect(
+    mapStateToProps,
+    mapActionsToProps
+)(Hero);

@@ -4,6 +4,7 @@ from flask_cors import CORS
 from flask_graphql import GraphQLView
 from schema import schema
 from db_fetch import fetch as fetchDB
+from graphene_file_upload.flask import FileUploadGraphQLView
 
 # Create flask application
 app = Flask(__name__)
@@ -71,11 +72,14 @@ fetchDB("""
 """, False)
 
 # Serve GraphQL API
-app.add_url_rule('/', view_func = GraphQLView.as_view(
-    'graphql',
-    graphiql = True,
-    schema = schema
-)) 
+app.add_url_rule(
+    '/',
+    view_func=FileUploadGraphQLView.as_view(
+        'graphql',
+        graphiql = True,
+        schema = schema
+    )
+)
 
 # Allow to run this function using flask manager
 if(__name__ == '__main__'):

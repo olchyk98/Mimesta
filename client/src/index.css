@@ -31,6 +31,12 @@ menu {
     padding: 0;
 }
 
+.hidden {
+    display:none;
+    opacity:0;
+    visibility:hidden;
+}
+
 .rn {
     --paddinglr: 0px;
 
@@ -98,4 +104,10 @@ menu {
 
 .rn-desk-cards-mat td {
     text-align: center;
+}
+
+@media only screen and (max-width: 500px) {
+    .rn-settings-fields {
+        grid-template-columns:1fr!important;
+    }
 }

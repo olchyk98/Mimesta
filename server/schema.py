@@ -2,6 +2,7 @@ import graphene as GraphQL
 from graphene.types.resolver import dict_resolver
 from graphql import GraphQLError
 from flask import session
+from graphene_file_upload.scalars import Upload as GraphQLUpload
 from db_fetch import fetch as fetchDB
 
 # 123
@@ -21,7 +22,7 @@ def countByField(arr, field):
         for ma in range(len(res)):
             if(res[ma][field] == value):
                 return ma
-                break;
+                break
             # end
         # end
         return False
@@ -173,7 +174,7 @@ class RootQuery(GraphQL.ObjectType):
     # end
     searchCards = GraphQL.List(CardType, query = GraphQL.NonNull(GraphQL.String))
     def resolve_searchCards(self, info, query):
-        # Check if user has a session
+        # Check if user has an active session
         uid = session.get('userid', None)
         if(not uid): raise GraphQLError("No session")
 
@@ -271,7 +272,7 @@ class RootMutation(GraphQL.ObjectType):
         Output = CardType
 
         def mutate(self, info, deskID, front, back):
-            # Check if user has a session
+            # Check if user has an active session
             uid = session.get('userid', None)
             if(not uid): raise GraphQLError("No session")
 
@@ -299,7 +300,7 @@ class RootMutation(GraphQL.ObjectType):
         Output = CardType
         
         def mutate(self, info, deskID, front, back, id):
-            # Check if user has a session
+            # Check if user has an active session
             uid = session.get('userid', None)
             if(not uid): raise GraphQLError("No session")
 
@@ -327,7 +328,7 @@ class RootMutation(GraphQL.ObjectType):
         Output = CardType
 
         def mutate(self, info, id, deskID):
-            # Check if user has a session
+            # Check if user has an active session
             uid = session.get('userid', None)
             if(not uid): raise GraphQLError("No session")
 
@@ -349,7 +350,7 @@ class RootMutation(GraphQL.ObjectType):
         Output = DeskType
 
         def mutate(self, info, id):
-            # Check if user has a session
+            # Check if user has an active session
             uid = session.get('userid', None)
             if(not uid): raise GraphQLError("No session")
 
@@ -374,7 +375,7 @@ class RootMutation(GraphQL.ObjectType):
         Output = DeskGameType
 
         def mutate(self, info, deskID, seconds, losedCards, clearCards, maxStrike, cardsID):
-            # Check if user has a session
+            # Check if user has an active session
             uid = session.get('userid', None)
             if(not uid): raise GraphQLError("No session")
 
@@ -400,6 +401,57 @@ class RootMutation(GraphQL.ObjectType):
         # end
     # end
 
+    class ChangeProfileSettingsMutation(GraphQL.Mutation):
+        class Arguments:
+            avatar = GraphQLUpload()
+            name = GraphQL.String()
+            email = GraphQL.String()
+            oldPassword = GraphQL.String()
+            password = GraphQL.String()
+        # end
+
+        Output = UserType
+
+        def mutate(self, info, avatar, name, email, oldPassword, password):
+            # Check if user has an active session
+            uid = session.get('userid', None)
+            if(not uid): raise GraphQLError("No session")
+
+            inres = None # >> string
+
+            # XXX: As I understand I'm not too good in python.
+            # I'm sure there is a better solution
+            def constrct(field, value = None):
+                if(inres): inres += ','
+                else: inres += "SET"
+
+                if(value): inres = '%s = %s' % (field, value)
+                else: inres = '%s = %s' % (field, field)
+            # end
+
+            if(oldPassword and password): # should be in the beginning
+                inres = 'AND password = %s '
+            # end
+
+            # Receive avatar
+            constrct(avatar)
+
+            # Receive other public fields
+            constrct(name)
+            constrct(email)
+
+            # Receive password
+            constrct(password)
+
+            print(inres)
+
+            return None
+            # return fetchDB('''
+            #     UPDATE Users WHERE id = $$%s$$ %s RETURNING *
+            # ''' % (uid, inres), 'S')
+        # end
+    # end
+
     registerUser = RegisterUserMutation.Field()
     loginUser = LoginUserMutation.Field()
     createDesk = CreateDeskMutation.Field()
@@ -409,6 +461,7 @@ class RootMutation(GraphQL.ObjectType):
     deleteCard = DeleteCardMutation.Field()
     deleteDesk = DeleteDeskMutation.Field()
     playDesk = PlayDeskMutation.Field()
+    changeProfileSettings = ChangeProfileSettingsMutation.Field()
 # end
 
 schema = GraphQL.Schema(query = RootQuery, mutation = RootMutation, auto_camelcase = False)
