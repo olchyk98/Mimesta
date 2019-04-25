@@ -147,7 +147,7 @@
 	font-family:"Quicksand";
 	background:#EF5E30;
 	height:40px;
-	margin-top:30px;
+	margin-top:5px;
 	width:170px;
 	font-size:.9em;
 	cursor:pointer;
@@ -167,4 +167,16 @@
 .rn-settings-submit:disabled {
 	background:gray;
 	cursor:progress;
+}
+
+.rn-settings-mess {
+	color:green;
+	font-weight:200;
+	font-family:"Quicksand";
+	font-size:1.05rem;
+ 	margin:10px 0;
+}
+
+.rn-settings-mess.err {
+	color:red;
 }

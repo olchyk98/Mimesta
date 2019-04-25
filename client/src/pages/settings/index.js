@@ -7,6 +7,7 @@ import { connect } from 'react-redux';
 
 import client from '../../apollo';
 import api from '../../api';
+import { constructClassName } from '../../utils';
 
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPen, faBomb } from '@fortawesome/free-solid-svg-icons';
@@ -53,13 +54,16 @@ class Hero extends Component {
 			isLoading: true,
 			user: null,
 			isSubmitting: false,
-			updatedUser: {}
+			updatedUser: {},
+			info: null
 		}
 	}
 
 	componentDidMount() {
 		this.loadUser();
 	}
+
+	castInfo = (e, t) => this.setState({ info: (t) ? { err: e, text: t } : null });
 
 	loadUser = () => {
 		const castError = (err) => {
@@ -101,7 +105,8 @@ class Hero extends Component {
 	submit = () => {
 		if(this.state.isLoading || this.state.isSubmitting) return;
 
-		this.setState(() => ({ isSubmitting: true }));
+		this.setState({ isSubmitting: false });
+		this.castInfo(null, null);
 		
 		const castError = (err) => {
 			console.error(err);
@@ -130,7 +135,15 @@ class Hero extends Component {
 			`,
 			variables: { avatar, name, email, oldPassword, password }
 		}).then(({ data: { changeProfileSettings: a } }) => {
-			console.log(a); // Check for two fields // avatar
+			this.setState({ isSubmitting: false });
+
+			if(!a && (oldPassword || password)) {
+				return this.castInfo(true, "Invalid password.");
+			} else if(!a) {
+				return this.castInfo(true, "Invalid response, please try later.");
+			}
+			
+			this.castInfo(false, "Profile successfully updated!");
 		}).catch(castError);
 	}
 
@@ -162,6 +175,7 @@ class Hero extends Component {
 								type="file"
 								className="hidden"
 								accept="image/*"
+								disabled={ this.state.isSubmitting }
 								id="rn-settings-account-avatar-change"
 								onChange={ ({ target: { files: [a] } }) => this.applyAvatar(a) }
 							/>
@@ -195,14 +209,24 @@ class Hero extends Component {
 							type="password"
 							onChange={ value => this.setUserField('oldpass', value) }
 							disabled={ this.state.isSubmitting }
+							required={ !!this.state.updatedUser.newpass }
 						/>
 						<Input
 							title="New password"
 							type="password"
 							onChange={ value => this.setUserField('newpass', value) }
 							disabled={ this.state.isSubmitting }
+							required={ !!this.state.updatedUser.oldpass }
 						/>
 					</section>
+					{
+						(!this.state.info) ? null : (
+							<p className={constructClassName({
+								"rn-settings-mess": true,
+								"err": this.state.info.err
+							})}>{ this.state.info.text }</p>
+						)	
+					}
 					<button
 						type="submit"
 						className="rn-settings-submit definp"

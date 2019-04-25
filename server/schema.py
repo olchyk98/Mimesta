@@ -5,6 +5,11 @@ from flask import session
 from graphene_file_upload.scalars import Upload as GraphQLUpload
 from db_fetch import fetch as fetchDB
 
+import re
+import string
+import imageio
+import random
+
 # 123
 class UserTypeStatType(GraphQL.ObjectType):
     class Meta:
@@ -420,7 +425,29 @@ class RootMutation(GraphQL.ObjectType):
 
             inres = ""
 
-            fields = [{ "field": "name", "value": name }, { "field": "email", "value": email }]
+            avatarPath = None
+            if(avatar): # receive avatar
+                def gen(length = 135):
+                    lib = string.ascii_letters + string.digits
+                    e = ""
+
+                    for ma in range(length):
+                        e += lib[random.randrange(len(lib))]
+
+                    return e
+                # end
+
+                ext = re.findall(r'[^\\]*\.(\w+)$', avatar.filename)[0]
+
+                avatarPath = '/avatars/%s.%s' % (gen(), ext)
+                avatar.save('./static/ud' + avatarPath)
+            # end
+
+            fields = [
+                { "field": "name", "value": name },
+                { "field": "email", "value": email },
+                { "field": "avatar", "value": avatarPath },
+            ]
             if(oldPassword and password): fields.append({ "field": "password", "value": password })
 
             for ma in fields:
@@ -432,13 +459,11 @@ class RootMutation(GraphQL.ObjectType):
 
             if(not inres): return None
 
-            print('''
-                UPDATE Users SET %s WHERE id = $$%s$$%s RETURNING *
-            ''' % (inres, uid, (oldPassword and password and ' AND password = $$%s$$' % oldPassword) or ''))
-
-            return fetchDB('''
+            resa = fetchDB('''
                 UPDATE Users SET %s WHERE id = $$%s$$%s RETURNING *
             ''' % (inres, uid, (oldPassword and password and ' AND password = $$%s$$' % oldPassword) or ''), 'S')
+
+            return resa
         # end
     # end
 
